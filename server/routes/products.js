@@ -17,8 +17,13 @@ router.get('/categories', (req, res) => {
 router.get('/', (req, res) => {
   try {
     const { category, search } = req.query;
-    let products = db.getProducts();
-    const categories = db.getCategories() || [];
+    let products = db.getProducts() || [];
+    let categories = [];
+    try {
+      categories = (typeof db.getCategories === 'function' ? db.getCategories() : db.data?.categories) || [];
+    } catch (_) {
+      categories = (db.data && db.data.categories) || [];
+    }
 
     if (category && category !== 'all') {
       products = products.filter(p => p.category === category);

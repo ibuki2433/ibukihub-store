@@ -817,6 +817,10 @@ class Database {
   }
 
   // Stats
+  getCategories() {
+    return this.data.categories || [];
+  }
+
   getDashboardStats() {
     return {
       stats: this.data.settings.stats,
