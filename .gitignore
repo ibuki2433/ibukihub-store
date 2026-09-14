@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Production build
+client/dist/
+
+# Large downloadable software packages (>100MB exceeds GitHub limit)
+server/storage/downloads/*.zip
+server/storage/downloads/*.rar
+server/storage/downloads/*.7z
+server/storage/downloads/*.exe
+
+# Environment variables & system
+.env
+.DS_Store
+Thumbs.db
+*.log

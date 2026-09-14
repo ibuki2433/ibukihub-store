@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #0c0a12;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
+      linear-gradient(rgba(12, 10, 18, 0.82), rgba(12, 10, 18, 0.82)),
+      url('/bg_pattern.jpg');
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-size: 100% 100%, 100% 100%, 512px 512px;
+    font-family: 'IBM Plex Sans Thai', 'Prompt', 'Inter', sans-serif;
+    color: #ede9fe;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom Scrollbar in Soft Purple */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0b14;
+}
+::-webkit-scrollbar-thumb {
+  background: #4c3d70;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6d559c;
+}
+
+/* Soft Purple Card Style (Hardware Accelerated, No Repaint Lag) */
+.soft-card {
+  background: #161226;
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.soft-card:hover {
+  border-color: rgba(167, 139, 250, 0.45);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.16);
+  transform: translateY(-2px);
+}
+
+/* Header Gradient */
+.header-soft-purple {
+  background: linear-gradient(180deg, rgba(20, 16, 34, 0.95) 0%, rgba(15, 12, 26, 0.92) 100%);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+/* Soft Purple Pill */
+.badge-soft-purple {
+  background: rgba(167, 139, 250, 0.12);
+  color: #c4b5fd;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+}
+
+/* Animations for floating icons and smooth scroll reveals */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes floatDelayed {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-2deg);
+  }
+}
+
+@keyframes shimmerWave {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+@keyframes pulseHalo {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.06);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatDelayed 6s ease-in-out 1.5s infinite;
+}
+
+.animate-pulse-halo {
+  animation: pulseHalo 3.5s ease-in-out infinite;
+}
+
+.card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-20deg);
+  pointer-events: none;
+  transition: transform 0.8s ease;
+}
+
+.card-shimmer:hover::after {
+  transform: translateX(300%) skewX(-20deg);
+}

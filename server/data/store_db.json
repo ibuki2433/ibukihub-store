@@ -1,0 +1,255 @@
+{
+  "settings": {
+    "storeName": "IbukiHub",
+    "announcement": "ยินดีต้อนรับสู่ IbukiHub ศูนย์รวมซอฟต์แวร์เดสก์ท็อป ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์ ระบบเปิดสิทธิ์ดาวน์โหลดอัตโนมัติ 24 ชม.",
+    "discordUrl": "https://discord.gg/ibukihub",
+    "lineUrl": "https://line.me/ti/p/~@ibukihub",
+    "facebookUrl": "https://facebook.com/ibukihub",
+    "stats": {
+      "itemsAvailable": 3,
+      "totalSalesBath": 14175,
+      "totalMembers": 100,
+      "totalSold": 73
+    },
+    "emailGateway": {
+      "enabled": true,
+      "provider": "custom",
+      "user": "gqkpm2003@gmail.com",
+      "pass": "",
+      "fromName": "IbukiHub Store",
+      "host": "smtp.gmail.com",
+      "port": 465
+    }
+  },
+  "users": [
+    {
+      "id": "usr_admin_ibuki",
+      "username": "ibuki",
+      "password": "2003",
+      "displayName": "Ibuki Admin (แอดมินหลัก)",
+      "role": "admin",
+      "balance": 999999,
+      "email": "ibuki@bullsoftware.dev",
+      "phone": "0800002003",
+      "isRootAdmin": true,
+      "createdAt": "2026-09-14T08:09:26.910Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "all",
+      "name": "ซอฟต์แวร์ทั้งหมด",
+      "icon": "Boxes"
+    },
+    {
+      "id": "download",
+      "name": "จัดการไฟล์และดาวน์โหลด",
+      "icon": "Download"
+    },
+    {
+      "id": "automation",
+      "name": "การตลาด & บอทอัตโนมัติ",
+      "icon": "Bot"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_autoposter",
+      "name": "Ibuki FB AutoPoster Pro V.1.0",
+      "category": "automation",
+      "price": 29,
+      "originalPrice": 59,
+      "badge": "บอทการตลาด Facebook อัจฉริยะ",
+      "version": "v1.0 Pro Portable",
+      "shortDesc": "⚡ Ibuki FB AutoPoster Pro บอทโพสต์กลุ่ม Facebook อัตโนมัติ เลือกรอบเวลาได้อิสระเป็นทุกๆ กี่นาที หรือทุกๆ กี่ชั่วโมง โพสต์วนรอบ สลับหลายบัญชี พร้อมระบบจำลองการพิมพ์เหมือนมนุษย์ (Human-like typing) ป้องกันการตรวจจับและกันแบน 100%",
+      "description": "Ibuki FB AutoPoster Pro v1.0 ซอฟต์แวร์ช่วยทำการตลาดออนไลน์และกระจายโพสต์ลงกลุ่ม Facebook อัตโนมัติเต็มรูปแบบ\n\nจุดเด่นฟังก์ชันการทำงาน:\n• ระบบโพสต์กลุ่มอัตโนมัติ (Batch Auto-Poster): กระจายโพสต์ลงกลุ่มเป้าหมายหลายๆ กลุ่มพร้อมกันโดยอัตโนมัติ ไม่ต้องเสียเวลานั่งโพสต์ทีละกลุ่ม\n• กำหนดรอบเวลาได้อิสระ (Custom Interval Posting): เลือกตั้งเวลาโพสต์ได้ละเอียด ทั้งแบบ 'ทุกๆ กี่นาที' หรือ 'ทุกๆ กี่ชั่วโมง'\n• ระบบโพสต์วนรอบอัตโนมัติ (Loop Posting Scheduler): ตั้งเวลาวนซ้ำโพสต์ต่อเนื่องตลอดวัน เลือกรอบเดียวหรือวนซ้ำไม่รู้จบ\n• รองรับสลับหลายบัญชี (Multi-Account Rotation): สลับบัญชี Facebook หลายไอดีในการโพสต์ เพื่อกระจายยอดการเข้าถึงและลดความเสี่ยง\n• ป้องกันการโดนแบน 100% ด้วยระบบจำลองการพิมพ์เหมือนมนุษย์ (Human-like Typing Simulation): จำลองการพิมพ์ทีละตัวอักษรแบบคนจริง พร้อมสุ่มดีเลย์หน่วงเวลาพักระหว่างกลุ่ม Facebook ตรวจจับไม่ได้\n• ระบบรันต่อเนื่องแม้ปิดหน้าต่าง (Background System Tray): ซ่อนโปรแกรมลง System Tray หลังตั้งเวลา ไม่เกะกะหน้าจอ รันงานเบื้องหลังเงียบๆ ตลอด 24 ชม.\n• ระบบดูตัวอย่างโพสต์จริง (Facebook Live Preview Modal): จำลองหน้าฟีด Facebook ของจริง ตรวจสอบแคปชัน แฮชแท็ก แท็กเพื่อน และการจัดวางรูปภาพก่อนเริ่มโพสต์จริง\n• ระบบ License ล็อกรหัสเครื่อง (Hardware ID Locked): ออกคีย์อัตโนมัติผูกกับรหัสประจำเครื่อง ปลอดภัยสูงสุด เลือกระยะเวลาใช้งานได้ทั้งแบบเช่ารายวัน/รายสัปดาห์/รายเดือน/รายปี หรือซื้อขาดถาวรตลอดชีพ",
+      "features": [
+        "ระบบโพสต์ลงหลายกลุ่ม Facebook อัตโนมัติ พร้อมสลับหลายบัญชี (Multi-Account)",
+        "เลือกรอบเวลาได้อิสระเป็นทุกๆ กี่นาที หรือทุกๆ กี่ชั่วโมง โพสต์วนรอบไม่จำกัด",
+        "จำลองการพิมพ์เหมือนมนุษย์ทีละตัวอักษร (Human-like Typing) ป้องกันการโดนแบน 100%",
+        "ระบบสุ่มหน่วงเวลา (Random Delay) ปลอดภัยสูงสุดตามมาตรฐาน Facebook",
+        "ระบบรันเบื้องหลัง (Background System Tray) ปิดหน้าต่างโปรแกรมยังทำงานต่อได้ตลอด 24 ชม.",
+        "หน้าต่าง Live Preview ตรวจสอบฟีด Facebook จำลองก่อนเริ่มโพสต์จริง",
+        "ระบบบันทึกโปรไฟล์ข้อความและกลุ่มแยกตาม License Key และ Hardware ID อัตโนมัติ",
+        "ไม่ต้องติดตั้ง (Portable Edition) แตกไฟล์ใช้งานได้ทันทีบน Windows 10/11"
+      ],
+      "plans": [
+        {
+          "id": "1day",
+          "name": "เช่า 1 วัน (ทดลองใช้งาน)",
+          "planCode": "1DAY",
+          "durationDays": 1,
+          "price": 29,
+          "originalPrice": 59,
+          "badge": "เริ่มต้น",
+          "isLifetime": false
+        },
+        {
+          "id": "7days",
+          "name": "เช่า 7 วัน (1 สัปดาห์)",
+          "planCode": "7DAYS",
+          "durationDays": 7,
+          "price": 99,
+          "originalPrice": 190,
+          "badge": "ประหยัด",
+          "isLifetime": false
+        },
+        {
+          "id": "30days",
+          "name": "เช่า 30 วัน (1 เดือน)",
+          "planCode": "30DAYS",
+          "durationDays": 30,
+          "price": 249,
+          "originalPrice": 490,
+          "badge": "⭐ ยอดนิยม",
+          "isLifetime": false
+        },
+        {
+          "id": "1year",
+          "name": "เช่า 1 ปี (365 วัน)",
+          "planCode": "1YEAR",
+          "durationDays": 365,
+          "price": 790,
+          "originalPrice": 1590,
+          "badge": "สุดคุ้ม",
+          "isLifetime": false
+        },
+        {
+          "id": "lifetime",
+          "name": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+          "planCode": "VIP",
+          "durationDays": 99999,
+          "price": 1290,
+          "originalPrice": 2590,
+          "badge": "👑 ตลอดชีพ",
+          "isLifetime": true
+        }
+      ],
+      "systemRequirements": "Windows 10 / Windows 11 (64-bit), Google Chrome, RAM 4GB ขึ้นไป, พื้นที่ว่าง 300MB",
+      "fileName": "Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip",
+      "fileSize": "122 MB",
+      "imageUrl": "/autoposter_ui.png",
+      "previewUrl": "/autoposter_ui.png",
+      "rating": 5,
+      "reviewsCount": 88,
+      "stock": "ไม่จำกัด",
+      "unlimitedStock": true,
+      "soldCount": 42,
+      "requiresMachineId": true,
+      "licenseFormat": "IBUKI-VIP-9999999999999-XXXXXXXXXX"
+    },
+    {
+      "id": "prod_ibuki_22",
+      "name": "IbukiDownload V.2.2",
+      "category": "download",
+      "price": 150,
+      "originalPrice": 290,
+      "badge": "เวอร์ชันแนะนำ",
+      "version": "v2.2 Portable",
+      "shortDesc": "⚡ IbukiDownload v2.2 (รุ่นเน้นดูดคลิป & เพลง ราคาสบายกระเป๋า) โหลดพร้อมกันหลายลิงก์ คมชัดสูงสุดระดับ Best Quality",
+      "description": "⚡ IbukiDownload v2.2 (รุ่นเน้นดูดคลิป & เพลง ราคาสบายกระเป๋า)\nราคาเบาๆ เพียง 150.-\nเน้นฟังก์ชันดาวน์โหลดคลิปและแยกไฟล์เสียงเต็มรูปแบบ\nโหลดพร้อมกันหลายลิงก์ คมชัดสูงสุดระดับ Best Quality\nเหมาะสำหรับสายดูดคลิปสั้น ครีเอเตอร์ตัดต่อ หรือคนที่อยากเก็บเพลงไว้ฟังแบบออฟไลน์\nไม่ต้องนั่งลุ้นกับเว็บแจกฟรีที่เต็มไปด้วยโฆษณากวนใจ ซื้อครั้งเดียวใช้ยาวๆ",
+      "features": [
+        "เน้นฟังก์ชันดาวน์โหลดคลิปและแยกไฟล์เสียงเต็มรูปแบบ (Video & Audio)",
+        "โหลดพร้อมกันหลายลิงก์ รองรับวางหลายๆ ลิงก์พร้อมกัน ป้องกันลิงก์ซ้ำ",
+        "คมชัดสูงสุดระดับ Best Quality (1080p FHD, 720p HD, 480p SD)",
+        "รองรับนามสกุลไฟล์ยอดนิยม: MP4, MKV, WebM, MOV, AVI และไฟล์เสียง",
+        "รองรับลิงก์วิดีโอ & เพลงไม่จำกัด (YouTube, TikTok, Facebook, IG, X, Bilibili, SoundCloud ฯลฯ)",
+        "ไม่ต้องติดตั้ง (Portable Edition) แตกไฟล์ใช้งานได้ทันที",
+        "ไม่ต้องนั่งลุ้นกับเว็บแจกฟรีที่เต็มไปด้วยโฆษณากวนใจ ซื้อครั้งเดียวใช้ยาวๆ"
+      ],
+      "systemRequirements": "Windows 10 / Windows 11 (64-bit), RAM 2GB ขึ้นไป, พื้นที่ว่าง 300MB",
+      "fileName": "IbukiDownload_v2.2_Portable.zip",
+      "fileSize": "98.9 MB",
+      "imageUrl": "/ibuki_v22_preview.png",
+      "previewUrl": "/ibuki_v22_preview.png",
+      "rating": 5,
+      "reviewsCount": 164,
+      "stock": "ไม่จำกัด",
+      "unlimitedStock": true,
+      "soldCount": 30,
+      "licenseFormat": "IBUKI-V22-XXXX-XXXX-XXXX"
+    },
+    {
+      "id": "prod_ibuki_25",
+      "name": "IbukiDownload V.2.5",
+      "category": "download",
+      "price": 190,
+      "originalPrice": 290,
+      "badge": "รุ่นท็อป 2-in-1",
+      "version": "v2.5 Portable",
+      "shortDesc": "⚡ IbukiDownload v2.5 โปรแกรมรวมฟังก์ชันจัดการไฟล์มัลติมีเดียและเอกสารแบบ 2-in-1 ในโปรแกรมเดียว ออกแบบมาให้ใช้งานง่าย รวดเร็ว และไม่ต้องง้อเว็บแปลงไฟล์ออนไลน์ที่เสี่ยงต่อความปลอดภัย",
+      "description": "IbukiDownload v2.5 โปรแกรมรวมฟังก์ชันจัดการไฟล์มัลติมีเดียและเอกสารแบบ 2-in-1 ในโปรแกรมเดียว ออกแบบมาให้ใช้งานง่าย รวดเร็ว และไม่ต้องง้อเว็บแปลงไฟล์ออนไลน์ที่เสี่ยงต่อความปลอดภัย\n\nจุดเด่นการทำงานระบบดาวน์โหลดวิดีโอ & เพลง (Media Downloader)\n• ระบบดาวน์โหลดแบบ Batch & Auto-Deduplication: รองรับการวางลิงก์พร้อมกันทีละหลายรายการ หรือโหลดผ่านไฟล์ .txt พร้อมระบบตรวจจับและป้องกันการดาวน์โหลดลิงก์ซ้ำอัตโนมัติ\n• รองรับแพลตฟอร์มชั้นนำไม่จำกัด: ดึงไฟล์ได้จาก YouTube, TikTok, Facebook, IG, X (Twitter), Bilibili, SoundCloud และอื่นๆ\n• เลือกความละเอียดและฟอร์แมตตามต้องการ: เลือกโหลดเป็น วิดีโอ (Video) หรือ เฉพาะไฟล์เสียง (Audio) ได้ในคลิกเดียว\n• ปรับความคมชัดได้สูงสุดตามต้นฉบับ: Best / 1080p FHD / 720p HD / 480p SD\n• ส่งออกไฟล์ได้หลากหลาย: MP4, MKV, WebM, MOV, AVI\n\nจุดเด่นการทำงานระบบแปลงไฟล์เอกสาร (Ibuki Document Converter)\n• High-Fidelity Document Engine: ระบบแปลงเอกสารความเที่ยงตรงสูง คงรูปเล่ม ตาราง รูปภาพ ฟอนต์ และการจัดหน้าตามต้นฉบับเดิมโดยไม่ดัดแปลงเนื้อหา\n• รองรับไฟล์ยอดนิยมรอบด้าน: แปลงไฟล์กลับไปมาระหว่าง PDF, Word (.docx), Excel, PPT และรูปภาพ\n• ลากแล้ววาง (Drag & Drop): นำเข้าไฟล์ได้ทันที พร้อมตัวเลือกเปิดไฟล์อัตโนมัติหลังแปลงเสร็จ\n\nสคริปต์โพสต์ขาย / แคปชันโปรโมต (Copywriting)\nหมดปัญหาเว็บดาวน์โหลดติดไวรัส หรือแปลงไฟล์ PDF แล้วฟอนต์เละ!\nจัดการทุกคอนเทนต์และงานเอกสารให้จบในโปรแกรมเดียวด้วย IbukiDownload v2.5",
+      "features": [
+        "รวม 2 ฟังก์ชันในโปรแกรมเดียว: Media Downloader & Document Converter",
+        "ระบบ Batch & Auto-Deduplication วางหลายลิงก์หรือไฟล์ .txt ป้องกันโหลดซ้ำ",
+        "รองรับ YouTube, TikTok, Facebook, IG, X (Twitter), Bilibili, SoundCloud ฯลฯ",
+        "เลือกโหลด Video หรือ Audio คมชัดสูงสุด Best / 1080p FHD / 720p HD / 480p SD",
+        "ส่งออกไฟล์หลากหลาย: MP4, MKV, WebM, MOV, AVI",
+        "Ibuki Document Converter แปลงเอกสารความเที่ยงตรงสูง คงรูปเล่ม ตาราง รูปภาพ ฟอนต์",
+        "รองรับแปลงสลับระหว่าง PDF, Word (.docx), Excel, PPT และรูปภาพ",
+        "รองรับ Drag & Drop ลากวางไฟล์ทันที พร้อมเปิดไฟล์อัตโนมัติเมื่อเสร็จ",
+        "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ตลอดชีพ ไม่ต้องใส่คีย์"
+      ],
+      "systemRequirements": "Windows 10 / Windows 11 (64-bit), RAM 4GB ขึ้นไป, พื้นที่ว่าง 500MB",
+      "fileName": "IbukiDownload_v2.5_Portable.zip",
+      "fileSize": "196 MB",
+      "imageUrl": "/ibuki_v25_banner.jpg",
+      "previewUrl": "/ibuki_v25_banner.jpg",
+      "rating": 5,
+      "reviewsCount": 210,
+      "stock": "ไม่จำกัด",
+      "unlimitedStock": true,
+      "soldCount": 35,
+      "licenseFormat": "IBUKI-V25-XXXX-XXXX-XXXX"
+    }
+  ],
+  "licenseKeys": {
+    "prod_ibuki_25": [
+      "IBUKI-V25-A8F9-E4D2-901B",
+      "IBUKI-V25-77B2-31C4-F90E",
+      "IBUKI-V25-9921-66AA-810D",
+      "IBUKI-V25-5432-11FE-BULL"
+    ]
+  },
+  "orders": [
+    {
+      "id": "ORD-806338",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "productId": "prod_autoposter",
+      "productName": "Ibuki FB AutoPoster Pro V.1.0",
+      "planId": "1day",
+      "planName": "เช่า 1 วัน (ทดลองใช้งาน)",
+      "planCode": "1DAY",
+      "durationDays": 1,
+      "isLifetime": false,
+      "expiresAt": "2026-09-15T09:38:31.257Z",
+      "price": 29,
+      "licenseKey": "IBUKI-1DAY-900215-28AB3E-805033",
+      "machineId": "EA95831F10B75006",
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip",
+      "fileSize": "122 MB",
+      "createdAt": "2026-09-14T09:38:31.290Z",
+      "status": "completed"
+    },
+    {
+      "id": "ORD-548899",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "productId": "prod_autoposter",
+      "productName": "Ibuki FB AutoPoster Pro V.1.0",
+      "price": 290,
+      "licenseKey": "IBUKI-VIP-9999999999999-3FEEC91CE5",
+      "machineId": "5D17BFE236DE0A70",
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip",
+      "fileSize": "122 MB",
+      "createdAt": "2026-09-14T08:57:26.910Z",
+      "status": "completed"
+    }
+  ],
+  "topups": []
+}
