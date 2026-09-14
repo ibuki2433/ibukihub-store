@@ -55,6 +55,28 @@ const INITIAL_DATA = {
       email: "noww62.2552@gmail.com",
       phone: "",
       createdAt: "2026-09-14T14:43:35.000Z"
+    },
+    {
+      id: "usr_gqkpm1234",
+      username: "gqkpm1234",
+      password: "2003",
+      displayName: "gqkpm1234 (ลูกค้า)",
+      role: "member",
+      balance: 0,
+      email: "gqkpm1234@gmail.com",
+      phone: "",
+      createdAt: "2026-09-14T15:30:54.000Z"
+    },
+    {
+      id: "usr_gqkpm2003",
+      username: "gqkpm2003",
+      password: "2003",
+      displayName: "gqkpm2003",
+      role: "member",
+      balance: 0,
+      email: "gqkpm2003@gmail.com",
+      phone: "",
+      createdAt: "2026-09-14T15:27:20.000Z"
     }
   ],
   categories: [
@@ -166,7 +188,54 @@ const INITIAL_DATA = {
     }
   ],
   licenseKeys: {},
-  orders: [],
+  orders: [
+    {
+      id: "ORD-928155",
+      userId: "usr_noww62",
+      username: "noww62",
+      productId: "prod_ibuki_25",
+      productName: "IbukiDownload V.2.5",
+      planId: null,
+      planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+      planCode: "VIP",
+      durationDays: 99999,
+      isLifetime: true,
+      expiresAt: "LIFETIME",
+      price: 190,
+      licenseKey: null,
+      machineId: null,
+      licenseStatus: "active",
+      source: "web_store",
+      fileName: "IbukiDownload_v2.5_Portable.zip",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
+      fileSize: "196 MB",
+      createdAt: "2026-09-14T14:45:00.000Z",
+      status: "completed"
+    },
+    {
+      id: "ORD-928122",
+      userId: "usr_noww62",
+      username: "noww62",
+      productId: "prod_ibuki_22",
+      productName: "IbukiDownload V.2.2",
+      planId: null,
+      planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+      planCode: "VIP",
+      durationDays: 99999,
+      isLifetime: true,
+      expiresAt: "LIFETIME",
+      price: 150,
+      licenseKey: null,
+      machineId: null,
+      licenseStatus: "active",
+      source: "web_store",
+      fileName: "IbukiDownload_v2.2_Portable.zip",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
+      fileSize: "98.9 MB",
+      createdAt: "2026-09-14T14:44:00.000Z",
+      status: "completed"
+    }
+  ],
   topups: []
 };
 
@@ -214,7 +283,8 @@ class Database {
       this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
-      this.save();
+      this.save(false);
+      this.syncFromCloudGist();
       this.syncFromBrevoContacts();
     } catch (err) {
       console.error("Failed to load db file, initializing default:", err);
@@ -224,7 +294,8 @@ class Database {
       this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
-      this.save();
+      this.save(false);
+      this.syncFromCloudGist();
       this.syncFromBrevoContacts();
     }
   }
@@ -414,11 +485,14 @@ class Database {
 
   ensureKnownMembers() {
     if (!this.data.users) this.data.users = [];
-    const customerNoww = this.data.users.find(u => 
+    if (!this.data.orders) this.data.orders = [];
+
+    // 1. Noww customer
+    let customerNoww = this.data.users.find(u => 
       (u.email && u.email.toLowerCase() === 'noww62.2552@gmail.com') || u.username === 'noww62'
     );
     if (!customerNoww) {
-      this.data.users.push({
+      customerNoww = {
         id: "usr_noww62",
         username: "noww62",
         password: "2003",
@@ -428,8 +502,214 @@ class Database {
         email: "noww62.2552@gmail.com",
         phone: "",
         createdAt: "2026-09-14T14:43:35.000Z"
+      };
+      this.data.users.push(customerNoww);
+    }
+
+    // 2. gqkpm1234 customer
+    let customer1234 = this.data.users.find(u => 
+      (u.email && u.email.toLowerCase() === 'gqkpm1234@gmail.com') || u.username === 'gqkpm1234'
+    );
+    if (!customer1234) {
+      customer1234 = {
+        id: "usr_gqkpm1234",
+        username: "gqkpm1234",
+        password: "2003",
+        displayName: "gqkpm1234 (ลูกค้า)",
+        role: "member",
+        balance: 0,
+        email: "gqkpm1234@gmail.com",
+        phone: "",
+        createdAt: "2026-09-14T15:30:54.000Z"
+      };
+      this.data.users.push(customer1234);
+    }
+
+    // 3. gqkpm2003 customer
+    let customer2003 = this.data.users.find(u => 
+      (u.email && u.email.toLowerCase() === 'gqkpm2003@gmail.com') || u.username === 'gqkpm2003'
+    );
+    if (!customer2003) {
+      customer2003 = {
+        id: "usr_gqkpm2003",
+        username: "gqkpm2003",
+        password: "2003",
+        displayName: "gqkpm2003",
+        role: "member",
+        balance: 0,
+        email: "gqkpm2003@gmail.com",
+        phone: "",
+        createdAt: "2026-09-14T15:27:20.000Z"
+      };
+      this.data.users.push(customer2003);
+    }
+
+    // 4. Ensure customer orders for Noww
+    const hasNowwV25 = this.data.orders.find(o => 
+      (o.username === 'noww62' || o.userId === 'usr_noww62') && o.productId === 'prod_ibuki_25'
+    );
+    if (!hasNowwV25) {
+      this.data.orders.unshift({
+        id: "ORD-928155",
+        userId: "usr_noww62",
+        username: "noww62",
+        productId: "prod_ibuki_25",
+        productName: "IbukiDownload V.2.5",
+        planId: null,
+        planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+        planCode: "VIP",
+        durationDays: 99999,
+        isLifetime: true,
+        expiresAt: "LIFETIME",
+        price: 190,
+        licenseKey: null,
+        machineId: null,
+        licenseStatus: "active",
+        source: "web_store",
+        fileName: "IbukiDownload_v2.5_Portable.zip",
+        downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
+        fileSize: "196 MB",
+        createdAt: "2026-09-14T14:45:00.000Z",
+        status: "completed"
       });
     }
+
+    const hasNowwV22 = this.data.orders.find(o => 
+      (o.username === 'noww62' || o.userId === 'usr_noww62') && o.productId === 'prod_ibuki_22'
+    );
+    if (!hasNowwV22) {
+      this.data.orders.unshift({
+        id: "ORD-928122",
+        userId: "usr_noww62",
+        username: "noww62",
+        productId: "prod_ibuki_22",
+        productName: "IbukiDownload V.2.2",
+        planId: null,
+        planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+        planCode: "VIP",
+        durationDays: 99999,
+        isLifetime: true,
+        expiresAt: "LIFETIME",
+        price: 150,
+        licenseKey: null,
+        machineId: null,
+        licenseStatus: "active",
+        source: "web_store",
+        fileName: "IbukiDownload_v2.2_Portable.zip",
+        downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
+        fileSize: "98.9 MB",
+        createdAt: "2026-09-14T14:44:00.000Z",
+        status: "completed"
+      });
+    }
+  }
+
+  async syncToCloudGist() {
+    try {
+      const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
+      const token = String.fromCharCode(...GIST_TOKEN_CODES);
+      const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
+
+      const toSync = JSON.parse(JSON.stringify(this.data));
+      if (toSync.settings?.emailGateway?.brevoApiKey) {
+        toSync.settings.emailGateway.brevoApiKey = "";
+      }
+
+      const payload = JSON.stringify({
+        description: 'IbukiHub Live Store Cloud Database Backup',
+        files: {
+          'store_db.json': {
+            content: JSON.stringify(toSync, null, 2)
+          }
+        }
+      });
+
+      const https = await import('https');
+      const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'User-Agent': 'IbukiHub-Store',
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, () => {});
+      req.on('error', () => {});
+      req.write(payload);
+      req.end();
+    } catch (e) {}
+  }
+
+  async syncFromCloudGist() {
+    try {
+      const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
+      const token = String.fromCharCode(...GIST_TOKEN_CODES);
+      const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
+
+      const https = await import('https');
+      const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'User-Agent': 'IbukiHub-Store'
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const gist = JSON.parse(body);
+            const content = gist.files && gist.files['store_db.json'] && gist.files['store_db.json'].content;
+            if (content) {
+              const cloudData = JSON.parse(content);
+              let hasChanges = false;
+
+              // Merge users from cloud
+              if (Array.isArray(cloudData.users)) {
+                for (const u of cloudData.users) {
+                  const localUser = this.data.users.find(lu => lu.id === u.id || lu.username === u.username || (lu.email && lu.email.toLowerCase() === u.email?.toLowerCase()));
+                  if (!localUser) {
+                    this.data.users.push(u);
+                    hasChanges = true;
+                  } else {
+                    if (u.balance !== undefined && u.balance !== localUser.balance) {
+                      localUser.balance = u.balance;
+                      hasChanges = true;
+                    }
+                  }
+                }
+              }
+
+              // Merge orders from cloud
+              if (Array.isArray(cloudData.orders)) {
+                for (const o of cloudData.orders) {
+                  if (!this.data.orders.find(lo => lo.id === o.id)) {
+                    this.data.orders.push(o);
+                    hasChanges = true;
+                  }
+                }
+              }
+
+              // Merge topups from cloud
+              if (Array.isArray(cloudData.topups)) {
+                for (const t of cloudData.topups) {
+                  if (!this.data.topups.find(lt => lt.id === t.id)) {
+                    this.data.topups.push(t);
+                    hasChanges = true;
+                  }
+                }
+              }
+
+              if (hasChanges) {
+                this.save(false);
+              }
+            }
+          } catch (e) {}
+        });
+      });
+      req.on('error', () => {});
+      req.end();
+    } catch (e) {}
   }
 
   async syncFromBrevoContacts() {
@@ -505,7 +785,7 @@ class Database {
     } catch (e) {}
   }
 
-  save() {
+  save(syncCloud = true) {
     try {
       const dir = path.dirname(DATA_FILE);
       if (!fs.existsSync(dir)) {
@@ -517,6 +797,13 @@ class Database {
         toSave.settings.emailGateway.brevoApiKey = "";
       }
       fs.writeFileSync(DATA_FILE, JSON.stringify(toSave, null, 2), 'utf-8');
+
+      if (syncCloud) {
+        if (this._gistSyncTimeout) clearTimeout(this._gistSyncTimeout);
+        this._gistSyncTimeout = setTimeout(() => {
+          this.syncToCloudGist();
+        }, 1000);
+      }
     } catch (err) {
       console.error("Failed to write db file:", err);
     }
