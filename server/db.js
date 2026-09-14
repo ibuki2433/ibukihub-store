@@ -33,6 +33,17 @@ const INITIAL_DATA = {
       email: "ibuki@bullsoftware.dev",
       phone: "0800002003",
       createdAt: new Date().toISOString()
+    },
+    {
+      id: "usr_noww62",
+      username: "noww62",
+      password: "2003",
+      displayName: "Noww (ลูกค้า)",
+      role: "member",
+      balance: 0,
+      email: "noww62.2552@gmail.com",
+      phone: "",
+      createdAt: "2026-09-14T14:43:35.000Z"
     }
   ],
   categories: [
@@ -192,13 +203,17 @@ class Database {
       }
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
+      this.ensureKnownMembers();
       this.save();
+      this.syncFromBrevoContacts();
     } catch (err) {
       console.error("Failed to load db file, initializing default:", err);
       this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
+      this.ensureKnownMembers();
       this.save();
+      this.syncFromBrevoContacts();
     }
   }
 
@@ -331,6 +346,99 @@ class Database {
     }
   }
 
+  ensureKnownMembers() {
+    if (!this.data.users) this.data.users = [];
+    const customerNoww = this.data.users.find(u => 
+      (u.email && u.email.toLowerCase() === 'noww62.2552@gmail.com') || u.username === 'noww62'
+    );
+    if (!customerNoww) {
+      this.data.users.push({
+        id: "usr_noww62",
+        username: "noww62",
+        password: "2003",
+        displayName: "Noww (ลูกค้า)",
+        role: "member",
+        balance: 0,
+        email: "noww62.2552@gmail.com",
+        phone: "",
+        createdAt: "2026-09-14T14:43:35.000Z"
+      });
+    }
+  }
+
+  async syncFromBrevoContacts() {
+    try {
+      const apiKey = process.env.BREVO_API_KEY || this.data.settings?.emailGateway?.brevoApiKey;
+      if (!apiKey) return;
+      const https = await import('https');
+      const req = https.default.request('https://api.brevo.com/v3/contacts?limit=50', {
+        method: 'GET',
+        headers: { 'api-key': apiKey, 'Accept': 'application/json' }
+      }, res => {
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            if (data && Array.isArray(data.contacts)) {
+              let updated = false;
+              for (const c of data.contacts) {
+                if (!c.email) continue;
+                const cleanEmail = c.email.toLowerCase();
+                if (cleanEmail === 'gqkpm2003@gmail.com' || cleanEmail === 'ibuki@bullsoftware.dev') continue;
+                const exists = this.data.users.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+                if (!exists) {
+                  const uname = (c.attributes && c.attributes.FIRSTNAME) || cleanEmail.split('@')[0];
+                  this.data.users.push({
+                    id: 'usr_' + Math.random().toString(36).substr(2, 9),
+                    username: uname,
+                    displayName: uname,
+                    email: cleanEmail,
+                    phone: (c.attributes && c.attributes.SMS) || '',
+                    password: '2003',
+                    role: 'member',
+                    balance: 0,
+                    createdAt: c.createdAt || new Date().toISOString()
+                  });
+                  updated = true;
+                }
+              }
+              if (updated) this.save();
+            }
+          } catch (e) {}
+        });
+      });
+      req.on('error', () => {});
+      req.end();
+    } catch (e) {}
+  }
+
+  async syncUserToBrevo(user) {
+    try {
+      const apiKey = process.env.BREVO_API_KEY || this.data.settings?.emailGateway?.brevoApiKey;
+      if (!apiKey || !user.email || user.email.endsWith('.local')) return;
+      const https = await import('https');
+      const payload = JSON.stringify({
+        email: user.email,
+        attributes: {
+          FIRSTNAME: user.displayName || user.username,
+          SMS: user.phone || ''
+        }
+      });
+      const req = https.default.request('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, () => {});
+      req.on('error', () => {});
+      req.write(payload);
+      req.end();
+    } catch (e) {}
+  }
+
   save() {
     try {
       const dir = path.dirname(DATA_FILE);
@@ -412,6 +520,7 @@ class Database {
     this.data.users.push(newUser);
     this.data.settings.stats.totalMembers += 1;
     this.save();
+    this.syncUserToBrevo(newUser);
     return newUser;
   }
 

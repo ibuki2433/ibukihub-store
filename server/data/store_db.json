@@ -35,6 +35,17 @@
       "phone": "0800002003",
       "isRootAdmin": true,
       "createdAt": "2026-09-14T08:09:26.910Z"
+    },
+    {
+      "id": "usr_noww62",
+      "username": "noww62",
+      "password": "2003",
+      "displayName": "Noww (ลูกค้า)",
+      "role": "member",
+      "balance": 0,
+      "email": "noww62.2552@gmail.com",
+      "phone": "",
+      "createdAt": "2026-09-14T14:43:35.000Z"
     }
   ],
   "categories": [
