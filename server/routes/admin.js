@@ -335,32 +335,48 @@ router.post('/sms-test', requireAdmin, async (req, res) => {
   }
 });
 
-// Get Email (Gmail SMTP) config
+// Get Email (Gmail SMTP / Brevo API) config
 router.get('/email-config', requireAdmin, (req, res) => {
   try {
     const settings = db.getSettings() || {};
     const gateway = settings.emailGateway || {
       enabled: false,
-      provider: 'gmail',
+      provider: 'brevo',
+      brevoApiKey: '',
       user: '',
       pass: '',
       fromName: 'IbukiHub Store',
+      fromEmail: 'gqkpm2003@gmail.com',
       host: 'smtp.gmail.com',
       port: 465
     };
+    const effectiveBrevoKey = process.env.BREVO_API_KEY || gateway.brevoApiKey || '';
     const effectiveUser = process.env.GMAIL_USER || gateway.user || '';
     const effectivePass = process.env.GMAIL_PASS || gateway.pass || '';
+    const effectiveFromEmail = gateway.fromEmail || effectiveUser || 'gqkpm2003@gmail.com';
+
+    const maskedBrevoKey = effectiveBrevoKey
+      ? (effectiveBrevoKey.length > 10
+          ? effectiveBrevoKey.slice(0, 10) + '••••••••' + effectiveBrevoKey.slice(-4)
+          : '••••••••')
+      : '';
+
     const maskedPass = effectivePass 
       ? (effectivePass.length > 6 
           ? effectivePass.slice(0, 3) + '••••••••' + effectivePass.slice(-3)
           : '••••••••')
       : '';
+
     res.json({
       success: true,
       config: {
         ...gateway,
-        enabled: gateway.enabled || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS),
+        enabled: gateway.enabled || !!effectiveBrevoKey || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS),
+        provider: gateway.provider || (effectiveBrevoKey ? 'brevo' : 'gmail'),
+        fromEmail: effectiveFromEmail,
         user: effectiveUser,
+        hasBrevoKey: !!effectiveBrevoKey,
+        maskedBrevoKey,
         hasPass: !!effectivePass,
         maskedPass
       }
@@ -370,17 +386,21 @@ router.get('/email-config', requireAdmin, (req, res) => {
   }
 });
 
-// Update Email (Gmail SMTP) config
+// Update Email (Gmail SMTP / Brevo API) config
 router.put('/email-config', requireAdmin, (req, res) => {
   try {
-    const { enabled, provider, user, pass, fromName, host, port } = req.body;
+    const { enabled, provider, brevoApiKey, user, pass, fromName, fromEmail, host, port } = req.body;
     const currentSettings = db.getSettings() || {};
     const prevGateway = currentSettings.emailGateway || {};
 
     const updatedGateway = {
       enabled: !!enabled,
-      provider: provider || 'gmail',
+      provider: provider || prevGateway.provider || 'brevo',
+      brevoApiKey: (brevoApiKey && brevoApiKey.trim() && !brevoApiKey.includes('••••'))
+        ? brevoApiKey.trim()
+        : (prevGateway.brevoApiKey || ''),
       user: user !== undefined ? user.trim() : (prevGateway.user || ''),
+      fromEmail: fromEmail !== undefined ? fromEmail.trim() : (prevGateway.fromEmail || 'gqkpm2003@gmail.com'),
       pass: (pass && pass.trim() && !pass.includes('••••')) 
         ? pass.trim().replace(/\s+/g, '') 
         : (prevGateway.pass || ''),
@@ -394,11 +414,20 @@ router.put('/email-config', requireAdmin, (req, res) => {
       emailGateway: updatedGateway
     });
 
+    const effectiveBrevoKey = process.env.BREVO_API_KEY || updatedGateway.brevoApiKey || '';
+    const maskedBrevoKey = effectiveBrevoKey
+      ? (effectiveBrevoKey.length > 10
+          ? effectiveBrevoKey.slice(0, 10) + '••••••••' + effectiveBrevoKey.slice(-4)
+          : '••••••••')
+      : '';
+
     res.json({
       success: true,
-      message: "บันทึกการตั้งค่า Gmail SMTP เรียบร้อยแล้ว",
+      message: "บันทึกการตั้งค่าระบบส่งอีเมลเรียบร้อยแล้ว",
       config: {
         ...updatedGateway,
+        hasBrevoKey: !!effectiveBrevoKey,
+        maskedBrevoKey,
         hasPass: !!updatedGateway.pass
       }
     });

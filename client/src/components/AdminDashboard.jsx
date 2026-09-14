@@ -54,18 +54,23 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     lineUrl: ''
   });
 
-  // Email (Gmail SMTP) Gateway state
+  // Email (Brevo API / Gmail SMTP) Gateway state
   const [emailConfig, setEmailConfig] = useState({
     enabled: false,
-    provider: 'gmail',
+    provider: 'brevo',
+    brevoApiKey: '',
+    fromEmail: 'gqkpm2003@gmail.com',
     user: '',
     pass: '',
     fromName: 'IbukiHub Store',
     host: 'smtp.gmail.com',
     port: 465,
+    hasBrevoKey: false,
+    maskedBrevoKey: '',
     hasPass: false,
     maskedPass: ''
   });
+  const [brevoKeyInput, setBrevoKeyInput] = useState('');
   const [emailPassInput, setEmailPassInput] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [testingEmail, setTestingEmail] = useState(false);
@@ -276,10 +281,14 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
         enabled: emailConfig.enabled,
         provider: emailConfig.provider,
         user: emailConfig.user,
+        fromEmail: emailConfig.fromEmail,
         fromName: emailConfig.fromName,
         host: emailConfig.host,
         port: emailConfig.port,
       };
+      if (brevoKeyInput.trim()) {
+        payload.brevoApiKey = brevoKeyInput.trim();
+      }
       if (emailPassInput.trim()) {
         payload.pass = emailPassInput.trim();
       }
@@ -293,10 +302,11 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMsg(data.message || "บันทึกการตั้งค่า Gmail SMTP เรียบร้อยแล้ว");
+      setMsg(data.message || "บันทึกการตั้งค่าระบบส่งอีเมลเรียบร้อยแล้ว");
       if (data.config) {
         setEmailConfig(data.config);
       }
+      setBrevoKeyInput('');
       setEmailPassInput('');
     } catch (e) {
       setErr("บันทึกการตั้งค่า Email ไม่สำเร็จ: " + e.message);
@@ -1016,14 +1026,14 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
             </div>
           )}
 
-          {/* EMAIL (GMAIL SMTP) CONFIG & TEST */}
+          {/* EMAIL (BREVO API / GMAIL SMTP) CONFIG & TEST */}
           {activeTab === 'email' && (
             <div className="space-y-6 max-w-2xl">
               <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-start gap-3">
                 <Mail className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span>ตั้งค่าระบบ Gmail OTP (ส่งรหัสเข้าอีเมลผู้ใช้จริง)</span>
+                    <span>ตั้งค่าระบบส่งอีเมล OTP (ยืนยันตัวตนสมัครสมาชิก)</span>
                     {emailConfig.enabled ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-400">
                         ● เปิดใช้งานจริง
@@ -1035,7 +1045,7 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                     )}
                   </h4>
                   <p className="text-xs text-purple-300/80 leading-relaxed">
-                    ระบบจะส่งรหัสยืนยันตัวตน (OTP 6 หลัก) ตรงเข้ากล่องจดหมาย Gmail ของผู้สมัครสมาชิก พร้อมเทมเพลตอีเมลสวยงามเพื่อความน่าเชื่อถือ
+                    ระบบจะส่งรหัสยืนยันตัวตน (OTP 6 หลัก) ตรงเข้ากล่องจดหมายผู้รับ พร้อมดีไซน์พรีเมียมสีม่วง IbukiHub แนะนำเลือก <strong>Brevo API</strong> เมื่อโฮสต์บน Render เพื่อเลี่ยงการบล็อกพอร์ต
                   </p>
                 </div>
               </div>
@@ -1043,7 +1053,7 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
               <form onSubmit={handleSaveEmailConfig} className="p-5 rounded-2xl bg-[#19142b] border border-purple-500/20 space-y-4">
                 <h5 className="text-xs font-bold text-purple-200 uppercase tracking-wider flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-purple-400" />
-                  <span>ข้อมูลบัญชี Gmail SMTP สำหรับส่งรหัส OTP</span>
+                  <span>ข้อมูลผู้ให้บริการสำหรับส่งอีเมล</span>
                 </h5>
 
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-black/40 border border-purple-500/20">
@@ -1063,17 +1073,18 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                   <div>
                     <label className="block text-xs font-medium text-purple-200 mb-1">ผู้ให้บริการ (Provider):</label>
                     <select
-                      value={emailConfig.provider}
+                      value={emailConfig.provider || 'brevo'}
                       onChange={(e) => setEmailConfig({ ...emailConfig, provider: e.target.value })}
                       className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs text-purple-100 focus:outline-none focus:border-purple-400"
                     >
-                      <option value="gmail">Gmail (smtp.gmail.com)</option>
+                      <option value="brevo">🌟 Brevo REST API (ฟรี 300 ฉบับ/วัน - แนะนำที่สุดสำหรับ Render)</option>
+                      <option value="gmail">Gmail SMTP (ต้องเปิดเครื่องตัวเอง / VPS)</option>
                       <option value="custom">Custom SMTP Server</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-purple-200 mb-1">ชื่อผู้ส่ง (Sender Display Name):</label>
+                    <label className="block text-xs font-medium text-purple-200 mb-1">ชื่อผู้ส่ง (Sender Name):</label>
                     <input
                       type="text"
                       placeholder="เช่น IbukiHub Store"
@@ -1084,59 +1095,141 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-purple-200 mb-1">
-                    บัญชี Gmail ของร้านค้า (Sender Gmail Address):
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="เช่น your-shop@gmail.com"
-                    value={emailConfig.user}
-                    onChange={(e) => setEmailConfig({ ...emailConfig, user: e.target.value })}
-                    className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
-                  />
-                </div>
+                {/* BREVO CONFIG FIELDS */}
+                {(!emailConfig.provider || emailConfig.provider === 'brevo') && (
+                  <div className="space-y-3 pt-2">
+                    <div className="p-3.5 rounded-xl bg-purple-900/20 border border-purple-500/20 text-xs space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-purple-200">💡 วิธีรับ Brevo API Key ฟรี (300 อีเมล/วัน ฟรีตลอดไป):</span>
+                        <a 
+                          href="https://app.brevo.com/settings/keys/api" 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-purple-400 hover:text-purple-300 underline font-semibold text-[11px]"
+                        >
+                          เปิดหน้า Brevo API Keys ↗
+                        </a>
+                      </div>
+                      <p className="text-[11px] text-purple-300/70 leading-relaxed">
+                        1. ไปที่ Brevo กดโปรไฟล์มุมขวาบน &gt; เลือก <strong>SMTP & API</strong> &gt; แท็บ <strong>API Keys</strong><br/>
+                        2. กดปุ่ม <strong>"Generate a new API key"</strong> ตั้งชื่อ แล้วกดคัดลอกรหัสมาวางด้านล่าง
+                      </p>
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-purple-200 mb-1 flex items-center justify-between">
-                    <span>รหัสผ่านแอป Gmail (App Password 16 หลัก):</span>
-                    {emailConfig.hasPass && (
-                      <span className="text-[10px] text-emerald-400">
-                        ✓ บันทึกรหัสผ่านไว้แล้ว ({emailConfig.maskedPass})
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="password"
-                    placeholder={emailConfig.hasPass ? "กรอกเฉพาะเมื่อต้องการเปลี่ยนรหัสผ่านแอปใหม่ (16 หลัก)" : "กรอก Google App Password 16 หลัก เช่น abcd efgh ijkl mnop"}
-                    value={emailPassInput}
-                    onChange={(e) => setEmailPassInput(e.target.value)}
-                    className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
-                  />
-                  <p className="text-[10px] text-purple-400/60 mt-1">
-                    * ไม่ใช่รหัสผ่านบัญชี Google ปกติ ต้องเป็น "รหัสผ่านสำหรับแอป (App Password)" ที่สร้างจากความปลอดภัย Google
-                  </p>
-                </div>
-
-                {emailConfig.provider === 'custom' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                     <div>
-                      <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Host:</label>
+                      <label className="block text-xs font-medium text-purple-200 mb-1 flex items-center justify-between">
+                        <span>Brevo API Key:</span>
+                        {emailConfig.hasBrevoKey && (
+                          <span className="text-[10px] text-emerald-400">
+                            ✓ บันทึก Brevo API Key ไว้แล้ว ({emailConfig.maskedBrevoKey})
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        placeholder={emailConfig.hasBrevoKey ? "กรอกเฉพาะเมื่อต้องการเปลี่ยนคีย์ใหม่ (ขึ้นต้นด้วย xkeysib-...)" : "วาง Brevo API Key เช่น xkeysib-..."}
+                        value={brevoKeyInput}
+                        onChange={(e) => setBrevoKeyInput(e.target.value)}
+                        className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-purple-200 mb-1">
+                        อีเมลผู้ส่ง (Sender Email - ต้องตรงกับอีเมลที่สมัคร Brevo):
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="เช่น gqkpm2003@gmail.com"
+                        value={emailConfig.fromEmail || ''}
+                        onChange={(e) => setEmailConfig({ ...emailConfig, fromEmail: e.target.value })}
+                        className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* GMAIL SMTP FIELDS */}
+                {emailConfig.provider === 'gmail' && (
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="block text-xs font-medium text-purple-200 mb-1">
+                        บัญชี Gmail ของร้านค้า (Sender Gmail Address):
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="เช่น your-shop@gmail.com"
+                        value={emailConfig.user}
+                        onChange={(e) => setEmailConfig({ ...emailConfig, user: e.target.value })}
+                        className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-purple-200 mb-1 flex items-center justify-between">
+                        <span>รหัสผ่านแอป Gmail (App Password 16 หลัก):</span>
+                        {emailConfig.hasPass && (
+                          <span className="text-[10px] text-emerald-400">
+                            ✓ บันทึกรหัสผ่านไว้แล้ว ({emailConfig.maskedPass})
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        placeholder={emailConfig.hasPass ? "กรอกเฉพาะเมื่อต้องการเปลี่ยนรหัสผ่านแอปใหม่ (16 หลัก)" : "กรอก Google App Password 16 หลัก เช่น abcd efgh ijkl mnop"}
+                        value={emailPassInput}
+                        onChange={(e) => setEmailPassInput(e.target.value)}
+                        className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                      />
+                      <p className="text-[10px] text-purple-400/60 mt-1">
+                        * หมายเหตุ: หากเว็บโฮสต์อยู่บน Render Free แนะนำให้ใช้ Brevo REST API ด้านบน เนื่องจาก Render บล็อกพอร์ต SMTP ออกภายนอก
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* CUSTOM SMTP FIELDS */}
+                {emailConfig.provider === 'custom' && (
+                  <div className="space-y-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Host:</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น smtp.example.com"
+                          value={emailConfig.host}
+                          onChange={(e) => setEmailConfig({ ...emailConfig, host: e.target.value })}
+                          className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Port:</label>
+                        <input
+                          type="number"
+                          placeholder="465 หรือ 587"
+                          value={emailConfig.port}
+                          onChange={(e) => setEmailConfig({ ...emailConfig, port: e.target.value })}
+                          className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Username / Email:</label>
                       <input
                         type="text"
-                        placeholder="เช่น smtp.example.com"
-                        value={emailConfig.host}
-                        onChange={(e) => setEmailConfig({ ...emailConfig, host: e.target.value })}
+                        placeholder="username"
+                        value={emailConfig.user}
+                        onChange={(e) => setEmailConfig({ ...emailConfig, user: e.target.value })}
                         className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Port:</label>
+                      <label className="block text-xs font-medium text-purple-200 mb-1">SMTP Password:</label>
                       <input
-                        type="number"
-                        placeholder="465 หรือ 587"
-                        value={emailConfig.port}
-                        onChange={(e) => setEmailConfig({ ...emailConfig, port: e.target.value })}
+                        type="password"
+                        placeholder="password"
+                        value={emailPassInput}
+                        onChange={(e) => setEmailPassInput(e.target.value)}
                         className="w-full bg-[#141022] border border-purple-500/20 rounded-xl px-3 py-2 text-xs font-mono text-purple-100 focus:outline-none focus:border-purple-400"
                       />
                     </div>
@@ -1149,7 +1242,7 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                     disabled={savingEmail}
                     className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white font-medium text-xs sm:text-sm transition-all shadow-soft-purple"
                   >
-                    {savingEmail ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า Gmail SMTP'}
+                    {savingEmail ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่าระบบส่งอีเมล'}
                   </button>
                 </div>
               </form>

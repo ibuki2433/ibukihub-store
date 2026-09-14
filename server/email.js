@@ -22,18 +22,25 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
     port: 465
   };
 
+  const brevoApiKey = (process.env.BREVO_API_KEY || emailConfig.brevoApiKey || '').trim();
   const senderUser = (process.env.GMAIL_USER || emailConfig.user || '').trim();
   const senderPass = (process.env.GMAIL_PASS || emailConfig.pass || '').trim().replace(/\s+/g, '');
-  const isEnabled = emailConfig.enabled || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS);
+  const fromName = emailConfig.fromName || 'IbukiHub Store';
+  const fromEmail = (emailConfig.fromEmail || senderUser || 'gqkpm2003@gmail.com').trim();
+
+  // If brevoApiKey exists or provider is brevo, prioritize Brevo API
+  const isBrevo = emailConfig.provider === 'brevo' || (!senderPass && !!brevoApiKey);
+  const isEnabled = emailConfig.enabled || !!brevoApiKey || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS);
 
   const fromAddress = senderUser 
-    ? `"${emailConfig.fromName || 'IbukiHub Store'}" <${senderUser}>`
-    : `"IbukiHub Store" <noreply@ibukihub.com>`;
+    ? `"${fromName}" <${senderUser}>`
+    : `"${fromName}" <${fromEmail}>`;
 
   console.log(`\n========================================================================`);
-  console.log(`📧 [Gmail OTP Service] DISPATCHING EMAIL TO: ${cleanEmail}`);
+  console.log(`📧 [Email OTP Service] DISPATCHING EMAIL TO: ${cleanEmail}`);
   if (otp) console.log(`🔑 OTP Code: ${otp} | Ref: ${ref || '-'}`);
   console.log(`✉️ Subject: ${subject}`);
+  console.log(`📡 Provider Selected: ${isBrevo ? 'Brevo REST API (HTTPS Port 443)' : (emailConfig.provider || 'gmail')}`);
 
   if (!isEnabled) {
     console.log(`ℹ️ [Notice] ยังไม่ได้เปิดใช้งานส่งอีเมลจริงใน Admin Dashboard`);
@@ -46,14 +53,75 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
     };
   }
 
+  // 1. BREVO REST API (Works 100% on Render / Cloud without SMTP port blocking)
+  if (isBrevo || (brevoApiKey && !senderPass)) {
+    if (!brevoApiKey) {
+      return {
+        success: false,
+        delivered: false,
+        simulated: true,
+        message: "ยังไม่พบ Brevo API Key กรุณากรอก Brevo API Key ใน Admin Dashboard หรือ Render Environment Variables"
+      };
+    }
+
+    try {
+      console.log(`🚀 [Brevo API] Sending via https://api.brevo.com/v3/smtp/email...`);
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoApiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: {
+            name: fromName,
+            email: fromEmail
+          },
+          to: [{ email: cleanEmail }],
+          subject: subject,
+          htmlContent: html,
+          textContent: text || undefined
+        })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || resData.code || `Brevo HTTP error ${response.status}`);
+      }
+
+      console.log(`✅ [Brevo API] Email successfully delivered! MessageId: ${resData.messageId}`);
+      console.log(`========================================================================\n`);
+
+      return {
+        success: true,
+        delivered: true,
+        provider: 'brevo',
+        messageId: resData.messageId,
+        message: `ส่งอีเมลสำเร็จผ่าน Brevo API เรียบร้อยแล้ว!`
+      };
+    } catch (err) {
+      console.error(`❌ [Brevo API Error]:`, err.message);
+      console.log(`========================================================================\n`);
+      return {
+        success: false,
+        delivered: false,
+        simulated: false,
+        error: err.message,
+        message: `ส่งอีเมลผ่าน Brevo API ไม่สำเร็จ (${err.message})`
+      };
+    }
+  }
+
+  // 2. GMAIL / CUSTOM SMTP
   if (!senderUser || !senderPass) {
-    console.log(`ℹ️ [Notice] ยังไม่ได้กรอกบัญชี Gmail หรือรหัสผ่านแอป 16 หลัก`);
+    console.log(`ℹ️ [Notice] ยังไม่ได้กรอกบัญชี Gmail หรือรหัสผ่านแอป 16 หลัก หรือ Brevo API Key`);
     console.log(`========================================================================\n`);
     return {
       success: false,
       delivered: false,
       simulated: true,
-      message: "ยังไม่พบรหัสผ่านแอป Gmail (App Password) กรุณากรอกรหัส 16 หลักในช่องรหัสผ่านแอปแล้วกดบันทึก"
+      message: "ยังไม่พบการตั้งค่าอีเมล (กรุณากรอก Brevo API Key หรือ Gmail App Password 16 หลัก)"
     };
   }
 
@@ -104,7 +172,7 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
     });
 
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("การเชื่อมต่อกับเซิร์ฟเวอร์อีเมลหมดเวลา (Timeout 15 วินาที) โปรดตรวจสอบรหัสผ่านแอป Gmail")), 15000)
+      setTimeout(() => reject(new Error("การเชื่อมต่อกับเซิร์ฟเวอร์อีเมลหมดเวลา (Timeout 15 วินาที) หากโฮสต์บน Render กรุณาเปลี่ยนไปใช้ Brevo API")), 15000)
     );
 
     const info = await Promise.race([sendPromise, timeoutPromise]);
