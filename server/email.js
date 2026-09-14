@@ -34,28 +34,44 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
   // If real Gmail / SMTP credentials are configured and enabled
   if (emailConfig.enabled && emailConfig.user && emailConfig.pass) {
     try {
-      console.log(`🚀 [Gmail SMTP] Connecting to ${emailConfig.provider === 'gmail' ? 'Gmail SMTP' : emailConfig.host}...`);
-      
       const cleanPass = emailConfig.pass.replace(/\s+/g, '');
-      const transporter = emailConfig.provider === 'gmail'
-        ? nodemailer.createTransport({
+      const isGmail = emailConfig.provider === 'gmail' || 
+                      (emailConfig.host && emailConfig.host.toLowerCase().includes('gmail')) ||
+                      (emailConfig.user && emailConfig.user.toLowerCase().includes('@gmail.com'));
+
+      console.log(`🚀 [Email SMTP] Connecting to ${isGmail ? 'Gmail Service' : emailConfig.host}...`);
+
+      const transportOptions = isGmail
+        ? {
             service: 'gmail',
             auth: {
-              user: emailConfig.user,
+              user: emailConfig.user.trim(),
               pass: cleanPass
-            }
-          })
-        : nodemailer.createTransport({
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000
+          }
+        : {
             host: emailConfig.host || 'smtp.gmail.com',
-            port: Number(emailConfig.port) || 465,
+            port: Number(emailConfig.port) || 587,
             secure: Number(emailConfig.port) === 465,
             auth: {
-              user: emailConfig.user,
+              user: emailConfig.user.trim(),
               pass: cleanPass
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+            tls: {
+              rejectUnauthorized: false
             }
-          });
+          };
 
-      const info = await transporter.sendMail({
+      const transporter = nodemailer.createTransport(transportOptions);
+
+      // Send mail with timeout protection (max 15 seconds)
+      const sendPromise = transporter.sendMail({
         from: fromAddress,
         to: cleanEmail,
         subject: subject,
@@ -63,13 +79,19 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
         html: html
       });
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("การเชื่อมต่อกับเซิร์ฟเวอร์อีเมลหมดเวลา (Timeout 15 วินาที) โปรดตรวจสอบรหัสผ่านแอป Gmail")), 15000)
+      );
+
+      const info = await Promise.race([sendPromise, timeoutPromise]);
+
       console.log(`✅ [Gmail SMTP] Email successfully delivered! MessageId: ${info.messageId}`);
       console.log(`========================================================================\n`);
 
       return {
         success: true,
         delivered: true,
-        provider: emailConfig.provider,
+        provider: isGmail ? 'gmail' : (emailConfig.provider || 'custom'),
         messageId: info.messageId
       };
     } catch (err) {

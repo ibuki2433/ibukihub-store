@@ -322,7 +322,8 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
           'Content-Type': 'application/json',
           'x-user-id': user.id
         },
-        body: JSON.stringify({ email: testEmail.trim() })
+        body: JSON.stringify({ email: testEmail.trim() }),
+        signal: AbortSignal.timeout(20000)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message);
