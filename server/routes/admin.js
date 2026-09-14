@@ -348,16 +348,20 @@ router.get('/email-config', requireAdmin, (req, res) => {
       host: 'smtp.gmail.com',
       port: 465
     };
-    const maskedPass = gateway.pass 
-      ? (gateway.pass.length > 6 
-          ? gateway.pass.slice(0, 3) + '••••••••' + gateway.pass.slice(-3)
+    const effectiveUser = process.env.GMAIL_USER || gateway.user || '';
+    const effectivePass = process.env.GMAIL_PASS || gateway.pass || '';
+    const maskedPass = effectivePass 
+      ? (effectivePass.length > 6 
+          ? effectivePass.slice(0, 3) + '••••••••' + effectivePass.slice(-3)
           : '••••••••')
       : '';
     res.json({
       success: true,
       config: {
         ...gateway,
-        hasPass: !!gateway.pass,
+        enabled: gateway.enabled || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS),
+        user: effectiveUser,
+        hasPass: !!effectivePass,
         maskedPass
       }
     });
@@ -429,12 +433,10 @@ router.post('/email-test', requireAdmin, async (req, res) => {
     });
 
     res.json({
-      success: result.success,
-      delivered: result.delivered,
+      success: !!result.delivered,
+      delivered: !!result.delivered,
       provider: result.provider || 'simulated',
-      message: result.delivered 
-        ? `ส่งอีเมลทดสอบไปยัง ${cleanEmail} สำเร็จเรียบร้อยแล้ว!` 
-        : (result.error ? `ส่งอีเมลไม่สำเร็จ: ${result.error}` : "ระบบจำลองการส่ง (บันทึกลงคอนโซล)"),
+      message: result.message || (result.delivered ? `ส่งอีเมลทดสอบไปยัง ${cleanEmail} สำเร็จเรียบร้อยแล้ว!` : "ส่งไม่สำเร็จ"),
       details: result
     });
   } catch (err) {

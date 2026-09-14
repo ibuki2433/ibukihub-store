@@ -22,102 +22,114 @@ export async function sendEmail({ to, subject, html, text, otp, ref }) {
     port: 465
   };
 
-  const fromAddress = emailConfig.user 
-    ? `"${emailConfig.fromName || 'IbukiHub'}" <${emailConfig.user}>`
-    : `"IbukiHub" <noreply@ibukihub.local>`;
+  const senderUser = (process.env.GMAIL_USER || emailConfig.user || '').trim();
+  const senderPass = (process.env.GMAIL_PASS || emailConfig.pass || '').trim().replace(/\s+/g, '');
+  const isEnabled = emailConfig.enabled || !!(process.env.GMAIL_USER && process.env.GMAIL_PASS);
+
+  const fromAddress = senderUser 
+    ? `"${emailConfig.fromName || 'IbukiHub Store'}" <${senderUser}>`
+    : `"IbukiHub Store" <noreply@ibukihub.com>`;
 
   console.log(`\n========================================================================`);
   console.log(`📧 [Gmail OTP Service] DISPATCHING EMAIL TO: ${cleanEmail}`);
   if (otp) console.log(`🔑 OTP Code: ${otp} | Ref: ${ref || '-'}`);
   console.log(`✉️ Subject: ${subject}`);
 
-  // If real Gmail / SMTP credentials are configured and enabled
-  if (emailConfig.enabled && emailConfig.user && emailConfig.pass) {
-    try {
-      const cleanPass = emailConfig.pass.replace(/\s+/g, '');
-      const isGmail = emailConfig.provider === 'gmail' || 
-                      (emailConfig.host && emailConfig.host.toLowerCase().includes('gmail')) ||
-                      (emailConfig.user && emailConfig.user.toLowerCase().includes('@gmail.com'));
-
-      console.log(`🚀 [Email SMTP] Connecting to ${isGmail ? 'Gmail Service' : emailConfig.host}...`);
-
-      const transportOptions = isGmail
-        ? {
-            service: 'gmail',
-            auth: {
-              user: emailConfig.user.trim(),
-              pass: cleanPass
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000
-          }
-        : {
-            host: emailConfig.host || 'smtp.gmail.com',
-            port: Number(emailConfig.port) || 587,
-            secure: Number(emailConfig.port) === 465,
-            auth: {
-              user: emailConfig.user.trim(),
-              pass: cleanPass
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
-            tls: {
-              rejectUnauthorized: false
-            }
-          };
-
-      const transporter = nodemailer.createTransport(transportOptions);
-
-      // Send mail with timeout protection (max 15 seconds)
-      const sendPromise = transporter.sendMail({
-        from: fromAddress,
-        to: cleanEmail,
-        subject: subject,
-        text: text,
-        html: html
-      });
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("การเชื่อมต่อกับเซิร์ฟเวอร์อีเมลหมดเวลา (Timeout 15 วินาที) โปรดตรวจสอบรหัสผ่านแอป Gmail")), 15000)
-      );
-
-      const info = await Promise.race([sendPromise, timeoutPromise]);
-
-      console.log(`✅ [Gmail SMTP] Email successfully delivered! MessageId: ${info.messageId}`);
-      console.log(`========================================================================\n`);
-
-      return {
-        success: true,
-        delivered: true,
-        provider: isGmail ? 'gmail' : (emailConfig.provider || 'custom'),
-        messageId: info.messageId
-      };
-    } catch (err) {
-      console.error(`❌ [Gmail SMTP Error]:`, err.message);
-      console.log(`⚠️ Falling back to logged OTP for development.`);
-      console.log(`========================================================================\n`);
-      return {
-        success: true,
-        delivered: false,
-        simulated: true,
-        error: err.message,
-        message: "ระบบจำลองการส่งอีเมล (โปรดตรวจสอบการตั้งค่า Gmail App Password)"
-      };
-    }
+  if (!isEnabled) {
+    console.log(`ℹ️ [Notice] ยังไม่ได้เปิดใช้งานส่งอีเมลจริงใน Admin Dashboard`);
+    console.log(`========================================================================\n`);
+    return {
+      success: false,
+      delivered: false,
+      simulated: true,
+      message: "ระบบยังไม่ได้เปิดใช้งานส่งอีเมลจริง (กรุณาติ๊ก 'เปิดใช้งานส่งอีเมลจริง' แล้วกดบันทึก)"
+    };
   }
 
-  // Fallback / Simulated mode when SMTP is not yet configured
-  console.log(`ℹ️ [Notice] ยังไม่ได้เปิดใช้งาน Gmail SMTP ใน Admin Dashboard (เปิดได้ที่ แผงควบคุมระบบ -> ตั้งค่าระบบอีเมล)`);
-  console.log(`========================================================================\n`);
+  if (!senderUser || !senderPass) {
+    console.log(`ℹ️ [Notice] ยังไม่ได้กรอกบัญชี Gmail หรือรหัสผ่านแอป 16 หลัก`);
+    console.log(`========================================================================\n`);
+    return {
+      success: false,
+      delivered: false,
+      simulated: true,
+      message: "ยังไม่พบรหัสผ่านแอป Gmail (App Password) กรุณากรอกรหัส 16 หลักในช่องรหัสผ่านแอปแล้วกดบันทึก"
+    };
+  }
 
-  return {
-    success: true,
-    delivered: false,
-    simulated: true,
-    message: "บันทึกรหัส OTP ลงในคอนโซลเรียบร้อยแล้ว"
-  };
+  // Real Gmail / SMTP delivery
+  try {
+    const isGmail = emailConfig.provider === 'gmail' || 
+                    (emailConfig.host && emailConfig.host.toLowerCase().includes('gmail')) ||
+                    senderUser.toLowerCase().includes('@gmail.com');
+
+    console.log(`🚀 [Email SMTP] Connecting to ${isGmail ? 'Gmail Service' : emailConfig.host}...`);
+
+    const transportOptions = isGmail
+      ? {
+          service: 'gmail',
+          auth: {
+            user: senderUser,
+            pass: senderPass
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000
+        }
+      : {
+          host: emailConfig.host || 'smtp.gmail.com',
+          port: Number(emailConfig.port) || 587,
+          secure: Number(emailConfig.port) === 465,
+          auth: {
+            user: senderUser,
+            pass: senderPass
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+          tls: {
+            rejectUnauthorized: false
+          }
+        };
+
+    const transporter = nodemailer.createTransport(transportOptions);
+
+    // Send mail with timeout protection (max 15 seconds)
+    const sendPromise = transporter.sendMail({
+      from: fromAddress,
+      to: cleanEmail,
+      subject: subject,
+      text: text,
+      html: html
+    });
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("การเชื่อมต่อกับเซิร์ฟเวอร์อีเมลหมดเวลา (Timeout 15 วินาที) โปรดตรวจสอบรหัสผ่านแอป Gmail")), 15000)
+    );
+
+    const info = await Promise.race([sendPromise, timeoutPromise]);
+
+    console.log(`✅ [Gmail SMTP] Email successfully delivered! MessageId: ${info.messageId}`);
+    console.log(`========================================================================\n`);
+
+    return {
+      success: true,
+      delivered: true,
+      provider: isGmail ? 'gmail' : (emailConfig.provider || 'custom'),
+      messageId: info.messageId,
+      message: `ส่งอีเมลสำเร็จเรียบร้อยแล้ว!`
+    };
+  } catch (err) {
+    console.error(`❌ [Gmail SMTP Error]:`, err.message);
+    console.log(`========================================================================\n`);
+    return {
+      success: false,
+      delivered: false,
+      simulated: false,
+      error: err.message,
+      message: `ส่งอีเมลไม่สำเร็จ (${err.message})`
+    };
+  }
 }
 
 /**
