@@ -32,6 +32,14 @@ const upload = multer({
   limits: { fileSize: 1024 * 1024 * 1024 } // Up to 1GB
 });
 
+// Disable HTTP caching for all Admin endpoints to guarantee real-time fresh data
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 // Middleware to check admin role
 const requireAdmin = (req, res, next) => {
   const userId = req.headers['x-user-id'];
@@ -143,9 +151,27 @@ router.post('/products/:id/keys', requireAdmin, (req, res) => {
 router.get('/members', requireAdmin, (req, res) => {
   try {
     const members = db.getAllMembers();
-    res.json({ success: true, members });
+    res.json({ success: true, members, count: members.length });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Real-time Cloud Gist Sync endpoint
+router.post('/sync-cloud', requireAdmin, async (req, res) => {
+  try {
+    await db.syncFromCloudGist();
+    await db.syncToCloudGist();
+    const members = db.getAllMembers();
+    const stats = db.getDashboardStats();
+    res.json({
+      success: true,
+      message: `ซิงค์ฐานข้อมูลกับ GitHub Cloud สำเร็จแล้ว (มีสมาชิกรวม ${members.length} ท่าน)`,
+      members,
+      stats
+    });
+  } catch (err) {
+    res.status(500).json({ error: "ซิงค์คลาวด์ไม่สำเร็จ: " + err.message });
   }
 });
 

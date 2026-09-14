@@ -5,7 +5,7 @@ import {
   ExternalLink, CheckCircle2, AlertCircle, RefreshCw, 
   Clock, ArrowUpRight, Phone, Mail, Edit3, Trash2, 
   Sparkles, Check, Copy, ChevronRight, Package,
-  Plus, UserPlus
+  Plus, UserPlus, Cloud
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +21,7 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
   // Data state
   const [activeTab, setActiveTab] = useState('members'); // 'members', 'topups', 'orders'
   const [loading, setLoading] = useState(false);
+  const [syncingCloud, setSyncingCloud] = useState(false);
   const [members, setMembers] = useState([]);
   const [topups, setTopups] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -69,21 +70,38 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
     }
   }, []);
 
-  // Fetch admin data on open or role
+  // Fetch admin data on mount and poll every 5s for real-time live member updates
   useEffect(() => {
     if (user && user.role === 'admin') {
-      fetchAdminData();
+      fetchAdminData(false);
+
+      // Auto-poll silently every 5 seconds so new registrations and balances are instantly visible
+      const interval = setInterval(() => {
+        fetchAdminData(true);
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
   }, [user]);
 
-  const fetchAdminData = async () => {
+  const fetchAdminData = async (silent = false) => {
     if (!user || user.role !== 'admin') return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
+      const timestamp = Date.now();
       const [resMembers, resTopups, resOrders] = await Promise.all([
-        fetch('/api/admin/members', { headers: { 'x-user-id': user.id } }),
-        fetch('/api/admin/topups', { headers: { 'x-user-id': user.id } }),
-        fetch('/api/admin/orders', { headers: { 'x-user-id': user.id } })
+        fetch(`/api/admin/members?_t=${timestamp}`, { 
+          headers: { 'x-user-id': user.id, 'Cache-Control': 'no-cache' },
+          cache: 'no-store'
+        }),
+        fetch(`/api/admin/topups?_t=${timestamp}`, { 
+          headers: { 'x-user-id': user.id, 'Cache-Control': 'no-cache' },
+          cache: 'no-store'
+        }),
+        fetch(`/api/admin/orders?_t=${timestamp}`, { 
+          headers: { 'x-user-id': user.id, 'Cache-Control': 'no-cache' },
+          cache: 'no-store'
+        })
       ]);
 
       if (resMembers.ok) {
@@ -101,7 +119,33 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
     } catch (e) {
       console.error("Admin data fetch error:", e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+    }
+  };
+
+  // Immediate Cloud Gist Sync Action
+  const handleSyncCloud = async () => {
+    if (!user || user.role !== 'admin') return;
+    setSyncingCloud(true);
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      const res = await fetch(`/api/admin/sync-cloud?_t=${Date.now()}`, {
+        method: 'POST',
+        headers: { 'x-user-id': user.id, 'Cache-Control': 'no-cache' },
+        cache: 'no-store'
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'ซิงค์ไม่สำเร็จ');
+      if (d.members) setMembers(d.members);
+      setActionMsg(d.message || "ซิงค์ฐานข้อมูลกับ GitHub Cloud เรียบร้อยแล้ว!");
+      fetchAdminData(true);
+      setTimeout(() => setActionMsg(null), 4000);
+    } catch (err) {
+      setActionErr("ซิงค์คลาวด์ไม่สำเร็จ: " + err.message);
+      setTimeout(() => setActionErr(null), 4000);
+    } finally {
+      setSyncingCloud(false);
     }
   };
 
@@ -385,9 +429,15 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
                   <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
                     Admin: {user.username}
                   </span>
+                  <span className="text-[9px] bg-purple-950 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full flex items-center gap-1 font-medium" title="ซิงค์ข้อมูลสดอัตโนมัติทุก 5 วินาที">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Live Sync
+                  </span>
                 </div>
-                <p className="text-[10px] text-purple-300/70 mt-0.5">
-                  ลากเลื่อนหน้าต่างนี้ได้อิสระบนหน้าจอ
+                <p className="text-[10px] text-purple-300/70 mt-0.5 flex items-center gap-2">
+                  <span>ลากเลื่อนหน้าต่างนี้ได้อิสระ</span>
+                  <span>•</span>
+                  <span className="text-emerald-400 font-medium">☁️ Cloud Backup Gist Active</span>
                 </p>
               </div>
             </div>
@@ -396,7 +446,18 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={fetchAdminData}
+                onClick={handleSyncCloud}
+                disabled={syncingCloud}
+                title="ซิงค์ข้อมูลกับ GitHub Cloud ทันที"
+                className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/50 transition-colors flex items-center gap-1 bg-purple-950/40 border border-purple-500/30 text-[10px] px-2"
+              >
+                <Cloud className={`w-3.5 h-3.5 text-cyan-400 ${syncingCloud ? 'animate-bounce' : ''}`} />
+                <span className="hidden sm:inline font-bold text-cyan-300">{syncingCloud ? 'กำลังซิงค์...' : 'ซิงค์คลาวด์'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fetchAdminData(false)}
                 title="รีเฟรชข้อมูล"
                 className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/50 transition-colors"
               >

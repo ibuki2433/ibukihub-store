@@ -88,18 +88,25 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
   const [submittingBalance, setSubmittingBalance] = useState(false);
 
   useEffect(() => {
-    fetchAllAdminData();
+    fetchAllAdminData(false);
+    const interval = setInterval(() => {
+      fetchAllAdminData(true);
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchAllAdminData = async () => {
+  const fetchAllAdminData = async (silent = false) => {
     if (!user || user.role !== 'admin') return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
-      const resStats = await fetch('/api/admin/stats', { headers: { 'x-user-id': user.id } });
+      const timestamp = Date.now();
+      const noCacheOpts = { headers: { 'x-user-id': user.id, 'Cache-Control': 'no-cache' }, cache: 'no-store' };
+
+      const resStats = await fetch(`/api/admin/stats?_t=${timestamp}`, noCacheOpts);
       const dataStats = await resStats.json();
       if (resStats.ok) setStats(dataStats);
 
-      const resProd = await fetch('/api/products');
+      const resProd = await fetch(`/api/products?_t=${timestamp}`, { cache: 'no-store' });
       const dataProd = await resProd.json();
       if (resProd.ok) {
         setProducts(dataProd.products || []);
@@ -108,19 +115,19 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
         }
       }
 
-      const resOrders = await fetch('/api/admin/orders', { headers: { 'x-user-id': user.id } });
+      const resOrders = await fetch(`/api/admin/orders?_t=${timestamp}`, noCacheOpts);
       const dataOrders = await resOrders.json();
       if (resOrders.ok) setOrders(dataOrders.orders || []);
 
-      const resTopups = await fetch('/api/admin/topups', { headers: { 'x-user-id': user.id } });
+      const resTopups = await fetch(`/api/admin/topups?_t=${timestamp}`, noCacheOpts);
       const dataTopups = await resTopups.json();
       if (resTopups.ok) setTopups(dataTopups.topups || []);
 
-      const resMembers = await fetch('/api/admin/members', { headers: { 'x-user-id': user.id } });
+      const resMembers = await fetch(`/api/admin/members?_t=${timestamp}`, noCacheOpts);
       const dataMembers = await resMembers.json();
       if (resMembers.ok) setMembers(dataMembers.members || []);
 
-      const resSet = await fetch('/api/settings');
+      const resSet = await fetch(`/api/settings?_t=${timestamp}`, { cache: 'no-store' });
       const dataSet = await resSet.json();
       if (resSet.ok && dataSet.settings) {
         setSettingsData({
@@ -131,17 +138,19 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
         });
       }
 
-      const resEmail = await fetch('/api/admin/email-config', { headers: { 'x-user-id': user.id } });
+      const resEmail = await fetch(`/api/admin/email-config?_t=${timestamp}`, noCacheOpts);
       const dataEmail = await resEmail.json();
       if (resEmail.ok && dataEmail.config) {
         setEmailConfig(dataEmail.config);
       }
 
     } catch (e) {
-      console.error(e);
-      setErr("โหลดข้อมูลไม่สำเร็จ: " + e.message);
+      if (!silent) {
+        console.error(e);
+        setErr("โหลดข้อมูลไม่สำเร็จ: " + e.message);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

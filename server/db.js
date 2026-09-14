@@ -286,6 +286,11 @@ class Database {
       this.save(false);
       this.syncFromCloudGist();
       this.syncFromBrevoContacts();
+
+      // Recurring real-time sync with GitHub Cloud Gist every 30 seconds
+      setInterval(() => {
+        this.syncFromCloudGist();
+      }, 30000);
     } catch (err) {
       console.error("Failed to load db file, initializing default:", err);
       this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
@@ -297,6 +302,10 @@ class Database {
       this.save(false);
       this.syncFromCloudGist();
       this.syncFromBrevoContacts();
+
+      setInterval(() => {
+        this.syncFromCloudGist();
+      }, 30000);
     }
   }
 
@@ -604,112 +613,141 @@ class Database {
     }
   }
 
-  async syncToCloudGist() {
-    try {
-      const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
-      const token = String.fromCharCode(...GIST_TOKEN_CODES);
-      const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
+  syncToCloudGist() {
+    return new Promise(async (resolve) => {
+      try {
+        const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
+        const token = String.fromCharCode(...GIST_TOKEN_CODES);
+        const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
 
-      const toSync = JSON.parse(JSON.stringify(this.data));
-      if (toSync.settings?.emailGateway?.brevoApiKey) {
-        toSync.settings.emailGateway.brevoApiKey = "";
-      }
+        const toSync = JSON.parse(JSON.stringify(this.data));
+        if (toSync.settings?.emailGateway?.brevoApiKey) {
+          toSync.settings.emailGateway.brevoApiKey = "";
+        }
 
-      const payload = JSON.stringify({
-        description: 'IbukiHub Live Store Cloud Database Backup',
-        files: {
-          'store_db.json': {
-            content: JSON.stringify(toSync, null, 2)
+        const payload = JSON.stringify({
+          description: 'IbukiHub Live Store Cloud Database Backup',
+          files: {
+            'store_db.json': {
+              content: JSON.stringify(toSync, null, 2)
+            }
           }
-        }
-      });
+        });
 
-      const https = await import('https');
-      const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'User-Agent': 'IbukiHub-Store',
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      }, () => {});
-      req.on('error', () => {});
-      req.write(payload);
-      req.end();
-    } catch (e) {}
+        const https = await import('https');
+        const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'User-Agent': 'IbukiHub-Store',
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(payload)
+          }
+        }, (res) => {
+          let data = '';
+          res.on('data', c => data += c);
+          res.on('end', () => resolve(true));
+        });
+        req.on('error', (err) => {
+          console.error("Gist push error:", err);
+          resolve(false);
+        });
+        req.write(payload);
+        req.end();
+      } catch (e) {
+        resolve(false);
+      }
+    });
   }
 
-  async syncFromCloudGist() {
-    try {
-      const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
-      const token = String.fromCharCode(...GIST_TOKEN_CODES);
-      const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
+  syncFromCloudGist() {
+    return new Promise(async (resolve) => {
+      try {
+        const GIST_TOKEN_CODES = [103,104,111,95,79,86,81,98,106,50,68,107,114,86,49,77,49,102,50,73,116,117,84,88,101,80,100,83,107,109,76,79,75,111,48,110,102,84,114,66];
+        const token = String.fromCharCode(...GIST_TOKEN_CODES);
+        const GIST_ID = '81bf977f2de986a9b42615b693f6bc2f';
 
-      const https = await import('https');
-      const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'User-Agent': 'IbukiHub-Store'
-        }
-      }, (res) => {
-        let body = '';
-        res.on('data', chunk => body += chunk);
-        res.on('end', () => {
-          try {
-            const gist = JSON.parse(body);
-            const content = gist.files && gist.files['store_db.json'] && gist.files['store_db.json'].content;
-            if (content) {
-              const cloudData = JSON.parse(content);
-              let hasChanges = false;
+        const https = await import('https');
+        const req = https.default.request(`https://api.github.com/gists/${GIST_ID}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'User-Agent': 'IbukiHub-Store'
+          }
+        }, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              const gist = JSON.parse(body);
+              const content = gist.files && gist.files['store_db.json'] && gist.files['store_db.json'].content;
+              if (content) {
+                const cloudData = JSON.parse(content);
+                let hasChanges = false;
 
-              // Merge users from cloud
-              if (Array.isArray(cloudData.users)) {
-                for (const u of cloudData.users) {
-                  const localUser = this.data.users.find(lu => lu.id === u.id || lu.username === u.username || (lu.email && lu.email.toLowerCase() === u.email?.toLowerCase()));
-                  if (!localUser) {
-                    this.data.users.push(u);
-                    hasChanges = true;
-                  } else {
-                    if (u.balance !== undefined && u.balance !== localUser.balance) {
-                      localUser.balance = u.balance;
+                // Merge users from cloud
+                if (Array.isArray(cloudData.users)) {
+                  for (const u of cloudData.users) {
+                    const localUser = this.data.users.find(lu => 
+                      lu.id === u.id || 
+                      (lu.username && u.username && lu.username.toLowerCase() === u.username.toLowerCase()) || 
+                      (lu.email && u.email && lu.email.toLowerCase() === u.email.toLowerCase())
+                    );
+                    if (!localUser) {
+                      this.data.users.push(u);
+                      hasChanges = true;
+                    } else {
+                      if (u.password && (!localUser.password || localUser.password === '-')) {
+                        localUser.password = u.password;
+                        hasChanges = true;
+                      }
+                      if (u.balance !== undefined && u.balance !== localUser.balance) {
+                        localUser.balance = u.balance;
+                        hasChanges = true;
+                      }
+                    }
+                  }
+                }
+
+                // Merge orders from cloud
+                if (Array.isArray(cloudData.orders)) {
+                  for (const o of cloudData.orders) {
+                    if (!this.data.orders.find(lo => lo.id === o.id)) {
+                      this.data.orders.push(o);
                       hasChanges = true;
                     }
                   }
                 }
-              }
 
-              // Merge orders from cloud
-              if (Array.isArray(cloudData.orders)) {
-                for (const o of cloudData.orders) {
-                  if (!this.data.orders.find(lo => lo.id === o.id)) {
-                    this.data.orders.push(o);
-                    hasChanges = true;
+                // Merge topups from cloud
+                if (Array.isArray(cloudData.topups)) {
+                  for (const t of cloudData.topups) {
+                    if (!this.data.topups.find(lt => lt.id === t.id)) {
+                      this.data.topups.push(t);
+                      hasChanges = true;
+                    }
                   }
                 }
-              }
 
-              // Merge topups from cloud
-              if (Array.isArray(cloudData.topups)) {
-                for (const t of cloudData.topups) {
-                  if (!this.data.topups.find(lt => lt.id === t.id)) {
-                    this.data.topups.push(t);
-                    hasChanges = true;
-                  }
+                if (hasChanges) {
+                  this.save(false);
                 }
               }
-
-              if (hasChanges) {
-                this.save(false);
-              }
+              resolve(true);
+            } catch (e) {
+              resolve(false);
             }
-          } catch (e) {}
+          });
         });
-      });
-      req.on('error', () => {});
-      req.end();
-    } catch (e) {}
+        req.on('error', (err) => {
+          console.error("Gist pull error:", err);
+          resolve(false);
+        });
+        req.end();
+      } catch (e) {
+        resolve(false);
+      }
+    });
   }
 
   async syncFromBrevoContacts() {
