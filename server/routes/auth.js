@@ -251,7 +251,7 @@ router.post('/send-email-otp', async (req, res) => {
     });
     const text = `[IbukiHub] รหัส OTP ยืนยันตัวตนของคุณคือ: ${otp} (Ref: ${ref}) รหัสมีอายุ 5 นาที`;
 
-    await sendEmail({
+    const sendResult = await sendEmail({
       to: cleanEmail,
       subject,
       html,
@@ -259,6 +259,12 @@ router.post('/send-email-otp', async (req, res) => {
       otp,
       ref
     });
+
+    if (!sendResult || !sendResult.delivered) {
+      return res.status(500).json({ 
+        error: (sendResult && sendResult.message) || "ไม่สามารถส่งอีเมล OTP ได้ กรุณาลองใหม่อีกครั้ง" 
+      });
+    }
 
     return res.json({
       success: true,
@@ -685,7 +691,7 @@ router.post('/forgot-password-request', async (req, res) => {
         username: user.username || user.displayName,
         purpose: 'รีเซ็ตรหัสผ่านบัญชี'
       });
-      await sendEmail({
+      const sendResult = await sendEmail({
         to: targetEmail,
         subject,
         html,
@@ -693,6 +699,11 @@ router.post('/forgot-password-request', async (req, res) => {
         otp,
         ref
       });
+      if (!sendResult || !sendResult.delivered) {
+        return res.status(500).json({ 
+          error: (sendResult && sendResult.message) || "ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้ กรุณาลองใหม่อีกครั้ง" 
+        });
+      }
     }
 
     return res.json({
