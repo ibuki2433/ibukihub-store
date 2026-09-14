@@ -13,8 +13,10 @@
     },
     "emailGateway": {
       "enabled": true,
-      "provider": "custom",
+      "provider": "brevo",
+      "brevoApiKey": "",
       "user": "gqkpm2003@gmail.com",
+      "fromEmail": "gqkpm2003@gmail.com",
       "pass": "",
       "fromName": "IbukiHub Store",
       "host": "smtp.gmail.com",
