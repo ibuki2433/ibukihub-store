@@ -118,14 +118,16 @@ const INITIAL_DATA = {
       systemRequirements: "Windows 10 / Windows 11 (64-bit), RAM 2GB ขึ้นไป, พื้นที่ว่าง 300MB",
       fileName: "IbukiDownload_v2.2_Portable.zip",
       fileSize: "98.9 MB",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
+      requiresKey: false,
+      noKeyRequired: true,
       imageUrl: "/ibuki_v22_preview.png",
       previewUrl: "/ibuki_v22_preview.png",
       rating: 5.0,
       reviewsCount: 164,
       stock: "ไม่จำกัด",
       unlimitedStock: true,
-      soldCount: 30,
-      licenseFormat: "IBUKI-V22-XXXX-XXXX-XXXX"
+      soldCount: 30
     },
     {
       id: "prod_ibuki_25",
@@ -151,24 +153,19 @@ const INITIAL_DATA = {
       systemRequirements: "Windows 10 / Windows 11 (64-bit), RAM 4GB ขึ้นไป, พื้นที่ว่าง 500MB",
       fileName: "IbukiDownload_v2.5_Portable.zip",
       fileSize: "196 MB",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
+      requiresKey: false,
+      noKeyRequired: true,
       imageUrl: "/ibuki_v25_banner.jpg",
       previewUrl: "/ibuki_v25_banner.jpg",
       rating: 5.0,
       reviewsCount: 210,
       stock: "ไม่จำกัด",
       unlimitedStock: true,
-      soldCount: 35,
-      licenseFormat: "IBUKI-V25-XXXX-XXXX-XXXX"
+      soldCount: 35
     }
   ],
-  licenseKeys: {
-    prod_ibuki_25: [
-      "IBUKI-V25-A8F9-E4D2-901B",
-      "IBUKI-V25-77B2-31C4-F90E",
-      "IBUKI-V25-9921-66AA-810D",
-      "IBUKI-V25-5432-11FE-BULL"
-    ]
-  },
+  licenseKeys: {},
   orders: [],
   topups: []
 };
@@ -214,6 +211,7 @@ class Database {
       }
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
+      this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
       this.save();
@@ -223,6 +221,7 @@ class Database {
       this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
+      this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
       this.save();
@@ -347,6 +346,43 @@ class Database {
       Object.assign(existing, autoPosterProduct);
     }
     this.data.settings.stats.itemsAvailable = this.data.products.length;
+  }
+
+  ensureDownloadProducts() {
+    if (!this.data.products) this.data.products = [];
+
+    const p22 = this.data.products.find(p => p.id === 'prod_ibuki_22');
+    if (p22) {
+      p22.fileName = "IbukiDownload_v2.2_Portable.zip";
+      p22.fileSize = "98.9 MB";
+      p22.downloadUrl = "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip";
+      p22.requiresKey = false;
+      p22.noKeyRequired = true;
+      delete p22.licenseFormat;
+    }
+
+    const p25 = this.data.products.find(p => p.id === 'prod_ibuki_25');
+    if (p25) {
+      p25.fileName = "IbukiDownload_v2.5_Portable.zip";
+      p25.fileSize = "196 MB";
+      p25.downloadUrl = "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip";
+      p25.requiresKey = false;
+      p25.noKeyRequired = true;
+      delete p25.licenseFormat;
+    }
+
+    if (this.data.licenseKeys) {
+      delete this.data.licenseKeys['prod_ibuki_22'];
+      delete this.data.licenseKeys['prod_ibuki_25'];
+    }
+
+    if (this.data.orders) {
+      for (const order of this.data.orders) {
+        if (order.productId === 'prod_ibuki_22' || order.productId === 'prod_ibuki_25') {
+          order.licenseKey = null;
+        }
+      }
+    }
   }
 
   ensureAdminUser() {
@@ -759,6 +795,8 @@ class Database {
         planName: planName,
         notes: `สั่งซื้อผ่านเว็บ IbukiHub (คำสั่งซื้อ #${orderId}, สมาชิก: ${user.username}, แพ็กเกจ: ${planName})`
       });
+    } else if (product.requiresKey === false || product.noKeyRequired || product.id === 'prod_ibuki_22' || product.id === 'prod_ibuki_25') {
+      licenseKey = null;
     } else {
       licenseKey = this.consumeLicenseKey(productId);
     }
@@ -789,6 +827,7 @@ class Database {
       licenseStatus,
       source: 'web_store',
       fileName: product.fileName || "software_package.zip",
+      downloadUrl: product.downloadUrl || null,
       fileSize: product.fileSize || "Ready to download",
       createdAt: new Date().toISOString(),
       status: "completed"

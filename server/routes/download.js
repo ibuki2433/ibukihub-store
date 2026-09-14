@@ -31,23 +31,31 @@ router.all('/:orderId', (req, res) => {
     }
 
     const product = db.getProductById(order.productId);
+    const fileName = order.fileName || (product && product.fileName) || "IbukiDownload_v2.5_Portable.zip";
+
+    // 1. Check local file candidates (user Downloads folder or server downloads directory)
+    const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
+    const localCandidates = [
+      path.join(DOWNLOADS_DIR, fileName),
+      path.join('C:\\Users\\User\\Downloads', fileName),
+      path.join(userDownloadsDir, fileName)
+    ];
+
+    for (const candPath of localCandidates) {
+      if (fs.existsSync(candPath)) {
+        return res.download(candPath, fileName, (err) => {
+          if (err && !res.headersSent) {
+            console.error("Download stream error:", err);
+            res.status(500).send("เกิดข้อผิดพลาดในการดาวน์โหลด: " + err.message);
+          }
+        });
+      }
+    }
+
+    // 2. Redirect to cloud CDN URL (e.g. GitHub Releases CDN for Render production)
     const externalUrl = order.downloadUrl || (product && product.downloadUrl);
     if (externalUrl && (externalUrl.startsWith('http://') || externalUrl.startsWith('https://'))) {
       return res.redirect(externalUrl);
-    }
-
-    const fileName = order.fileName || "IbukiDownload_v2.2_Portable.zip";
-    const filePath = path.join(DOWNLOADS_DIR, fileName);
-
-    // If actual file exists on disk (like IbukiDownload_v2.2_Portable.zip)
-    if (fs.existsSync(filePath)) {
-      // res.download natively handles Range requests, Content-Length, and HEAD requests!
-      return res.download(filePath, fileName, (err) => {
-        if (err && !res.headersSent) {
-          console.error("Download stream error:", err);
-          res.status(500).send("เกิดข้อผิดพลาดในการดาวน์โหลด: " + err.message);
-        }
-      });
     }
 
     // Fallback: If it's another product without uploaded file yet, generate a delivery package on the fly
@@ -78,17 +86,33 @@ Status:   Active / Lifetime (ซื้อแล้วจบเลย)
   }
 });
 
-// Direct test download for specific filename
+// Direct download for specific filename
 router.all('/file/:fileName', (req, res) => {
   try {
     const { fileName } = req.params;
-    const filePath = path.join(DOWNLOADS_DIR, fileName);
+    const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
+    const localCandidates = [
+      path.join(DOWNLOADS_DIR, fileName),
+      path.join('C:\\Users\\User\\Downloads', fileName),
+      path.join(userDownloadsDir, fileName)
+    ];
 
-    if (fs.existsSync(filePath)) {
-      res.download(filePath, fileName);
-    } else {
-      res.status(404).send("ไฟล์ไม่พบ");
+    for (const candPath of localCandidates) {
+      if (fs.existsSync(candPath)) {
+        return res.download(candPath, fileName);
+      }
     }
+
+    const cdnMap = {
+      'IbukiDownload_v2.2_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip',
+      'IbukiDownload_v2.5_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip'
+    };
+
+    if (cdnMap[fileName]) {
+      return res.redirect(cdnMap[fileName]);
+    }
+
+    res.status(404).send("ไฟล์ไม่พบ");
   } catch (err) {
     res.status(500).send(err.message);
   }

@@ -7,9 +7,9 @@
     "facebookUrl": "https://facebook.com/ibukihub",
     "stats": {
       "itemsAvailable": 3,
-      "totalSalesBath": 14175,
+      "totalSalesBath": 14544,
       "totalMembers": 100,
-      "totalSold": 73
+      "totalSold": 76
     },
     "emailGateway": {
       "enabled": true,
@@ -147,7 +147,7 @@
       "reviewsCount": 88,
       "stock": "ไม่จำกัด",
       "unlimitedStock": true,
-      "soldCount": 42,
+      "soldCount": 43,
       "requiresMachineId": true,
       "licenseFormat": "IBUKI-VIP-9999999999999-XXXXXXXXXX"
     },
@@ -173,14 +173,16 @@
       "systemRequirements": "Windows 10 / Windows 11 (64-bit), RAM 2GB ขึ้นไป, พื้นที่ว่าง 300MB",
       "fileName": "IbukiDownload_v2.2_Portable.zip",
       "fileSize": "98.9 MB",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
+      "requiresKey": false,
+      "noKeyRequired": true,
       "imageUrl": "/ibuki_v22_preview.png",
       "previewUrl": "/ibuki_v22_preview.png",
       "rating": 5,
       "reviewsCount": 164,
       "stock": "ไม่จำกัด",
       "unlimitedStock": true,
-      "soldCount": 30,
-      "licenseFormat": "IBUKI-V22-XXXX-XXXX-XXXX"
+      "soldCount": 31
     },
     {
       "id": "prod_ibuki_25",
@@ -206,24 +208,19 @@
       "systemRequirements": "Windows 10 / Windows 11 (64-bit), RAM 4GB ขึ้นไป, พื้นที่ว่าง 500MB",
       "fileName": "IbukiDownload_v2.5_Portable.zip",
       "fileSize": "196 MB",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
+      "requiresKey": false,
+      "noKeyRequired": true,
       "imageUrl": "/ibuki_v25_banner.jpg",
       "previewUrl": "/ibuki_v25_banner.jpg",
       "rating": 5,
       "reviewsCount": 210,
       "stock": "ไม่จำกัด",
       "unlimitedStock": true,
-      "soldCount": 35,
-      "licenseFormat": "IBUKI-V25-XXXX-XXXX-XXXX"
+      "soldCount": 36
     }
   ],
-  "licenseKeys": {
-    "prod_ibuki_25": [
-      "IBUKI-V25-A8F9-E4D2-901B",
-      "IBUKI-V25-77B2-31C4-F90E",
-      "IBUKI-V25-9921-66AA-810D",
-      "IBUKI-V25-5432-11FE-BULL"
-    ]
-  },
+  "licenseKeys": {},
   "orders": [
     {
       "id": "ORD-806338",
