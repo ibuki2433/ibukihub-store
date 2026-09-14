@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, LayoutDashboard, PackagePlus, Key, ShoppingCart, 
-  Wallet, Settings, Trash2, Plus, Upload, CheckCircle2, 
+  Wallet, Settings, Trash2, Plus, Minus, Upload, CheckCircle2, 
   AlertCircle, HardDrive, Terminal, Users, Phone, Mail, 
   Eye, EyeOff, Edit3, ChevronRight, Smartphone, Send, ShieldCheck, Download
 } from 'lucide-react';
@@ -76,6 +76,16 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailResult, setTestEmailResult] = useState(null);
   const [savingEmail, setSavingEmail] = useState(false);
+
+  // Member Balance Adjustment Modal
+  const [balanceModal, setBalanceModal] = useState({
+    isOpen: false,
+    member: null,
+    mode: 'add', // 'add', 'deduct', 'set'
+    amount: '',
+    note: ''
+  });
+  const [submittingBalance, setSubmittingBalance] = useState(false);
 
   useEffect(() => {
     fetchAllAdminData();
@@ -356,6 +366,60 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     setRevealedPasswords(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
 
+  const openBalanceModal = (member, mode = 'add') => {
+    setBalanceModal({
+      isOpen: true,
+      member,
+      mode,
+      amount: '',
+      note: ''
+    });
+    setErr(null);
+    setMsg(null);
+  };
+
+  const handleConfirmBalanceAdjustment = async (e) => {
+    if (e) e.preventDefault();
+    if (!balanceModal.member) return;
+    const num = Number(balanceModal.amount);
+    if (isNaN(num) || num <= 0) {
+      setErr("กรุณาระบุจำนวนเงินที่มากกว่า 0 บาท");
+      return;
+    }
+
+    setSubmittingBalance(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      const payload = {
+        mode: balanceModal.mode,
+        amount: num,
+        note: balanceModal.note ? balanceModal.note.trim() : ''
+      };
+      if (balanceModal.mode === 'set') {
+        payload.balance = num;
+      }
+      const res = await fetch(`/api/admin/members/${balanceModal.member.id}/balance`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setMsg(data.message || "ปรับยอดเงินเรียบร้อยแล้ว");
+      setBalanceModal({ isOpen: false, member: null, mode: 'add', amount: '', note: '' });
+      fetchAllAdminData();
+    } catch (err) {
+      setErr("ปรับยอดเงินไม่สำเร็จ: " + err.message);
+    } finally {
+      setSubmittingBalance(false);
+    }
+  };
+
   const handleSaveMemberBalance = async (memberId) => {
     if (newBalanceInput === '' || isNaN(Number(newBalanceInput))) return;
     try {
@@ -575,52 +639,45 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                           </div>
                         </div>
 
-                        {/* Balance Edit */}
-                        <div className="text-right">
-                          {isEditingBal ? (
-                            <div className="flex items-center gap-1.5 justify-end">
-                              <input
-                                type="number"
-                                value={newBalanceInput}
-                                onChange={(e) => setNewBalanceInput(e.target.value)}
-                                className="w-24 bg-black/60 text-emerald-400 px-2 py-1 rounded-lg text-xs border border-emerald-500/40 text-right font-mono font-bold"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleSaveMemberBalance(m.id)}
-                                className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
-                              >
-                                บันทึก
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditingBalanceUser(null)}
-                                className="px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs"
-                              >
-                                ยกเลิก
-                              </button>
+                        {/* Balance Display & Controls */}
+                        <div className="flex items-center gap-2.5 justify-end flex-wrap">
+                          <div className="text-right mr-1">
+                            <div className="text-[10px] text-neutral-400">ยอดเงินคงเหลือ</div>
+                            <div className="text-sm sm:text-base font-mono font-extrabold text-emerald-400">
+                              ฿ {Number(m.balance || 0).toLocaleString()}
                             </div>
-                          ) : (
-                            <div className="flex items-center gap-2 justify-end">
-                              <div>
-                                <div className="text-[10px] text-neutral-400">ยอดเงินคงเหลือ</div>
-                                <div className="text-sm font-mono font-bold text-emerald-400">
-                                  ฿ {Number(m.balance || 0).toLocaleString()}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingBalanceUser(m.id);
-                                  setNewBalanceInput(m.balance);
-                                }}
-                                className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-900/40 border border-purple-500/20"
-                                title="แก้ไขยอดเงิน"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openBalanceModal(m, 'add')}
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 text-xs font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95"
+                              title="เพิ่มเงินให้สมาชิก"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>เพิ่มเงิน</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openBalanceModal(m, 'deduct')}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95"
+                              title="ลดเงินสมาชิก"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                              <span>ลดเงิน</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openBalanceModal(m, 'set')}
+                              className="p-1.5 rounded-xl bg-purple-900/40 hover:bg-purple-800/60 text-purple-300 hover:text-white border border-purple-500/30 transition-all active:scale-95"
+                              title="กำหนดยอดเงินตรงๆ"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -1375,6 +1432,193 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
         </div>
 
       </div>
+
+      {/* BALANCE ADJUSTMENT MODAL (เพิ่มเงิน / ลดเงิน / กำหนดยอด) */}
+      {balanceModal.isOpen && balanceModal.member && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[#171328] border border-purple-500/40 rounded-3xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] space-y-4">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-xl ${
+                  balanceModal.mode === 'add' 
+                    ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/40' 
+                    : balanceModal.mode === 'deduct'
+                      ? 'bg-rose-950/80 text-rose-400 border border-rose-500/40'
+                      : 'bg-purple-950/80 text-purple-300 border border-purple-500/40'
+                }`}>
+                  {balanceModal.mode === 'add' ? <Plus className="w-5 h-5" /> : balanceModal.mode === 'deduct' ? <Minus className="w-5 h-5" /> : <Edit3 className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">
+                    {balanceModal.mode === 'add' 
+                      ? 'เพิ่มเงินให้สมาชิก (+)' 
+                      : balanceModal.mode === 'deduct' 
+                        ? 'ลดเงิน / หักเงินสมาชิก (-)' 
+                        : 'กำหนดยอดเงินสมาชิก (Set)'}
+                  </h4>
+                  <p className="text-xs text-purple-300/70">
+                    ผู้ใช้: <strong className="text-white">{balanceModal.member.username}</strong> ({balanceModal.member.displayName || balanceModal.member.email})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, isOpen: false })}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white bg-black/40 hover:bg-neutral-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Mode Tabs */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/40 rounded-xl border border-purple-500/20 text-xs">
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'add' })}
+                className={`py-1.5 rounded-lg font-bold transition-all flex items-center justify-center gap-1 ${balanceModal.mode === 'add' ? 'bg-emerald-600 text-white shadow-sm' : 'text-purple-300/70 hover:text-white'}`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>เพิ่มเงิน</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'deduct' })}
+                className={`py-1.5 rounded-lg font-bold transition-all flex items-center justify-center gap-1 ${balanceModal.mode === 'deduct' ? 'bg-rose-600 text-white shadow-sm' : 'text-purple-300/70 hover:text-white'}`}
+              >
+                <Minus className="w-3.5 h-3.5" />
+                <span>ลดเงิน</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'set' })}
+                className={`py-1.5 rounded-lg font-bold transition-all flex items-center justify-center gap-1 ${balanceModal.mode === 'set' ? 'bg-purple-600 text-white shadow-sm' : 'text-purple-300/70 hover:text-white'}`}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>กำหนดยอด</span>
+              </button>
+            </div>
+
+            {/* Current Balance & Live Preview */}
+            <div className="p-3.5 rounded-2xl bg-black/50 border border-purple-500/20 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-neutral-400 block">ยอดคงเหลือปัจจุบัน</span>
+                <span className="text-base font-bold font-mono text-purple-200">
+                  ฿ {Number(balanceModal.member.balance || 0).toLocaleString()}
+                </span>
+              </div>
+
+              {balanceModal.amount && !isNaN(Number(balanceModal.amount)) && Number(balanceModal.amount) > 0 && (
+                <div className="text-right">
+                  <span className="text-[10px] text-neutral-400 block">ยอดใหม่หลังทำรายการ</span>
+                  <span className={`text-base font-bold font-mono ${
+                    balanceModal.mode === 'add' 
+                      ? 'text-emerald-400' 
+                      : balanceModal.mode === 'deduct' 
+                        ? 'text-rose-400' 
+                        : 'text-amber-400'
+                  }`}>
+                    ฿ {(
+                      balanceModal.mode === 'add'
+                        ? Number(balanceModal.member.balance || 0) + Number(balanceModal.amount)
+                        : balanceModal.mode === 'deduct'
+                          ? Math.max(0, Number(balanceModal.member.balance || 0) - Number(balanceModal.amount))
+                          : Number(balanceModal.amount)
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Amount Buttons */}
+            <div>
+              <label className="block text-xs font-medium text-purple-200 mb-1.5">จำนวนเงินด่วน:</label>
+              <div className="flex flex-wrap gap-1.5">
+                {[50, 100, 300, 500, 1000, 2000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setBalanceModal({ ...balanceModal, amount: amt.toString() })}
+                    className="px-2.5 py-1 rounded-lg bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-xs font-mono font-medium transition-all active:scale-95"
+                  >
+                    {balanceModal.mode === 'add' ? `+฿${amt}` : balanceModal.mode === 'deduct' ? `-฿${amt}` : `฿${amt}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Adjustment Form */}
+            <form onSubmit={handleConfirmBalanceAdjustment} className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-medium text-purple-200 mb-1">
+                  {balanceModal.mode === 'add' 
+                    ? 'จำนวนเงินที่ต้องการเพิ่ม (บาท):' 
+                    : balanceModal.mode === 'deduct' 
+                      ? 'จำนวนเงินที่ต้องการลด (บาท):' 
+                      : 'กำหนดยอดเงินใหม่ (บาท):'}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  required
+                  autoFocus
+                  placeholder="เช่น 100"
+                  value={balanceModal.amount}
+                  onChange={(e) => setBalanceModal({ ...balanceModal, amount: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-purple-200 mb-1">
+                  หมายเหตุ / เหตุผลบันทึกช่วยจำ (ไม่บังคับ):
+                </label>
+                <input
+                  type="text"
+                  placeholder="เช่น โอนเงินตรงผ่านแอดมิน, กิจกรรมสุ่มแจก, หักเงินคืน..."
+                  value={balanceModal.note}
+                  onChange={(e) => setBalanceModal({ ...balanceModal, note: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3.5 py-2 text-xs text-purple-100 focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={submittingBalance}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md active:scale-95 disabled:opacity-50 ${
+                    balanceModal.mode === 'add'
+                      ? 'bg-emerald-600 hover:bg-emerald-500'
+                      : balanceModal.mode === 'deduct'
+                        ? 'bg-rose-600 hover:bg-rose-500'
+                        : 'bg-purple-600 hover:bg-purple-500'
+                  }`}
+                >
+                  {submittingBalance 
+                    ? 'กำลังดำเนินการ...' 
+                    : balanceModal.mode === 'add'
+                      ? `ยืนยันเพิ่มเงิน (+฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`
+                      : balanceModal.mode === 'deduct'
+                        ? `ยืนยันลดเงิน (-฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`
+                        : `ยืนยันกำหนดยอด (฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBalanceModal({ ...balanceModal, isOpen: false })}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-medium transition-colors"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

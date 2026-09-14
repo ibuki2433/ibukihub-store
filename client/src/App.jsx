@@ -24,9 +24,10 @@ function StoreMain() {
   const { t, lang } = useLanguage();
   const [currentPage, setCurrentPage] = useState('shop'); // 'shop', 'signin', 'signup'
   const [products, setProducts] = useState([]);
-  const categories = [
-    { id: "download", name: t('navDownloadCategory') }
-  ];
+  const [categories, setCategories] = useState([
+    { id: "download", name: "จัดการไฟล์และดาวน์โหลด" },
+    { id: "automation", name: "การตลาด & บอทอัตโนมัติ" }
+  ]);
   const [settings, setSettings] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,12 +92,39 @@ function StoreMain() {
       const data = await res.json();
       if (res.ok) {
         setProducts(data.products || []);
+        if (data.categories && Array.isArray(data.categories)) {
+          const validCats = data.categories
+            .filter(c => c.id !== 'all')
+            .map(c => ({
+              ...c,
+              name: c.id === 'download' 
+                ? t('navDownloadCategory') 
+                : c.id === 'automation' 
+                  ? t('navAutomationCategory') 
+                  : c.name
+            }));
+          if (validCats.length > 0) {
+            setCategories(validCats);
+          }
+        }
       }
     } catch (err) {
       console.error("Fetch products error:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearchSubmit = (term) => {
+    if (currentPage !== 'shop') setCurrentPage('shop');
+    setSelectedCategory('all');
+    if (term !== undefined) setSearchTerm(term);
+    setTimeout(() => {
+      const el = document.getElementById('catalog');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
   };
 
   const fetchSettings = async () => {
@@ -200,9 +228,9 @@ function StoreMain() {
           if (currentPage !== 'shop') setCurrentPage('shop');
         }}
         onLogoClick={handleBackToShop}
-        onSearchSubmit={() => {
-          if (currentPage !== 'shop') setCurrentPage('shop');
-        }}
+        onSearchSubmit={handleSearchSubmit}
+        products={products}
+        onSelectProduct={(prod) => setSelectedProduct(prod)}
         currentPage={currentPage}
       />
 

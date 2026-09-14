@@ -28,6 +28,16 @@ export default function ProductCard({ product, onSelectProduct, onQuickBuy, inde
     return product.features?.slice(0, 2) || [];
   };
 
+  const getCategoryLabel = () => {
+    if (product.category === 'automation') {
+      return lang === 'en' ? '🤖 Automation Bot' : '🤖 การตลาด & บอทอัตโนมัติ';
+    }
+    if (product.category === 'download') {
+      return lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด';
+    }
+    return product.category ? `🏷️ ${product.category}` : null;
+  };
+
   return (
     <div 
       style={{ transitionDelay: `${(index % 6) * 90}ms` }}
@@ -47,7 +57,12 @@ export default function ProductCard({ product, onSelectProduct, onQuickBuy, inde
         <div className="absolute inset-0 bg-gradient-to-t from-[#141020] via-transparent to-transparent opacity-90" />
 
         {/* Top Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10 max-w-[85%]">
+          {getCategoryLabel() && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-950/90 text-indigo-200 border border-indigo-400/50 backdrop-blur-md shadow-sm">
+              {getCategoryLabel()}
+            </span>
+          )}
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-900/80 text-purple-200 border border-purple-400/40 backdrop-blur-md">
             {getBadge()}
           </span>

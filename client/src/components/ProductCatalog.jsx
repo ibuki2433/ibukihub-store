@@ -35,12 +35,33 @@ export default function ProductCatalog({
     return () => observer.disconnect();
   }, []);
 
+  // Normalize helper for flexible fuzzy search (e.g. 'v.2.5' matches 'v2.5', '2.5', 'IbukiDownload')
+  const normalize = (str) => (str || '').toLowerCase().replace(/[\s\.\-_]/g, '');
+
   // Filter & Sort
   let filtered = products.filter(p => {
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesSearch = !searchTerm || 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.shortDesc && p.shortDesc.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (!searchTerm || !searchTerm.trim()) return matchesCategory;
+
+    const q = searchTerm.toLowerCase().trim();
+    const normQ = normalize(q);
+    const name = (p.name || '').toLowerCase();
+    const normName = normalize(name);
+    const shortDesc = (p.shortDesc || '').toLowerCase();
+    const desc = (p.description || '').toLowerCase();
+    const badge = (p.badge || '').toLowerCase();
+    const version = (p.version || '').toLowerCase();
+    const category = (p.category || '').toLowerCase();
+
+    const matchesSearch = 
+      name.includes(q) ||
+      normName.includes(normQ) ||
+      shortDesc.includes(q) ||
+      desc.includes(q) ||
+      badge.includes(q) ||
+      version.includes(q) ||
+      category.includes(q);
+
     return matchesCategory && matchesSearch;
   });
 
@@ -93,6 +114,23 @@ export default function ProductCatalog({
         </div>
       </div>
 
+      {/* Active Search Notification Banner */}
+      {searchTerm && (
+        <div className="mb-4 p-3 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-purple-200">
+            <span>🔍 ค้นหาคำว่า:</span>
+            <strong className="text-white bg-black/40 px-2 py-0.5 rounded border border-purple-400/30 font-mono">"{searchTerm}"</strong>
+            <span className="text-purple-300/80">• พบ {filtered.length} รายการ</span>
+          </div>
+          <button
+            onClick={() => setSearchTerm('')}
+            className="text-purple-300 hover:text-white px-2 py-1 rounded bg-purple-900/50 hover:bg-purple-800/70 border border-purple-500/30 transition-colors shrink-0"
+          >
+            ล้างการค้นหา ✕
+          </button>
+        </div>
+      )}
+
       {/* Category Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
         <button
@@ -107,19 +145,28 @@ export default function ProductCatalog({
           <span>{t('catalogAll')}</span>
         </button>
 
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all ${
-              selectedCategory === cat.id
-                ? 'bg-purple-700 text-white shadow-soft-purple border border-purple-400/40'
-                : 'bg-[#171328] text-purple-200/70 hover:text-white border border-purple-500/20 hover:border-purple-500/40'
-            }`}
-          >
-            <span>{cat.id === 'download' ? t('navDownloadCategory') : cat.name}</span>
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const isSelected = selectedCategory === cat.id;
+          const label = cat.id === 'download' 
+            ? (lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด')
+            : cat.id === 'automation'
+              ? (lang === 'en' ? '🤖 Automation Bots' : '🤖 การตลาด & บอทอัตโนมัติ')
+              : cat.name;
+
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-purple-700 text-white shadow-soft-purple border border-purple-400/40'
+                  : 'bg-[#171328] text-purple-200/70 hover:text-white border border-purple-500/20 hover:border-purple-500/40'
+              }`}
+            >
+              <span>{label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Product Grid */}

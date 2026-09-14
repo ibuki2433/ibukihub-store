@@ -149,15 +149,71 @@ router.get('/members', requireAdmin, (req, res) => {
   }
 });
 
-// Update member balance
+// Update member balance (Add, Deduct, Set)
 router.put('/members/:id/balance', requireAdmin, (req, res) => {
   try {
-    const { balance } = req.body;
-    if (balance === undefined || isNaN(Number(balance))) {
-      return res.status(400).json({ error: "กรุณาระบุจำนวนเงินที่ถูกต้อง" });
+    const { balance, mode, amount, note } = req.body;
+    const member = db.getUserById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลสมาชิก" });
     }
-    const updated = db.setMemberBalance(req.params.id, Number(balance));
-    res.json({ success: true, user: updated, message: `อัปเดตยอดเงินของ ${updated.username} เป็น ${updated.balance} ฿ สำเร็จ` });
+
+    const currentBal = Number(member.balance) || 0;
+    let finalBalance = currentBal;
+    let actionLabel = "ปรับยอดเงิน";
+
+    if (mode === 'add') {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ error: "กรุณาระบุจำนวนเงินที่ต้องการเพิ่มให้ถูกต้อง (> 0 บาท)" });
+      }
+      finalBalance = currentBal + numAmount;
+      actionLabel = `แอดมินเพิ่มเงิน +฿${numAmount.toLocaleString()}${note ? ' (' + note + ')' : ''}`;
+      
+      // Record topup history
+      db.createTopup({
+        userId: member.id,
+        username: member.username,
+        amount: numAmount,
+        channel: actionLabel,
+        status: 'SUCCESS'
+      });
+    } else if (mode === 'deduct') {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ error: "กรุณาระบุจำนวนเงินที่ต้องการลดให้ถูกต้อง (> 0 บาท)" });
+      }
+      finalBalance = Math.max(0, currentBal - numAmount);
+      actionLabel = `แอดมินลดเงิน -฿${numAmount.toLocaleString()}${note ? ' (' + note + ')' : ''}`;
+      
+      // Record topup deduction history
+      db.createTopup({
+        userId: member.id,
+        username: member.username,
+        amount: -numAmount,
+        channel: actionLabel,
+        status: 'SUCCESS'
+      });
+    } else {
+      // Direct set
+      if (balance === undefined || isNaN(Number(balance))) {
+        return res.status(400).json({ error: "กรุณาระบุจำนวนเงินที่ถูกต้อง" });
+      }
+      finalBalance = Math.max(0, Number(balance));
+      actionLabel = `แอดมินกำหนดยอดเงินเป็น ฿${finalBalance.toLocaleString()}`;
+    }
+
+    const updated = db.setMemberBalance(req.params.id, finalBalance);
+
+    res.json({
+      success: true,
+      user: updated,
+      message: mode === 'add'
+        ? `เพิ่มเงินให้ ${updated.username} สำเร็จ (+฿${Number(amount).toLocaleString()}) ยอดคงเหลือใหม่: ฿${updated.balance.toLocaleString()}`
+        : mode === 'deduct'
+          ? `ลดเงินของ ${updated.username} สำเร็จ (-฿${Number(amount).toLocaleString()}) ยอดคงเหลือใหม่: ฿${updated.balance.toLocaleString()}`
+          : `อัปเดตยอดเงินของ ${updated.username} เป็น ฿${updated.balance.toLocaleString()} สำเร็จ`
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

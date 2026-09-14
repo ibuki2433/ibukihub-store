@@ -220,7 +220,16 @@ No more dealing with sketchy adware websites. One-time purchase, lifetime access
           <div className="absolute inset-0 bg-gradient-to-t from-[#141022] via-[#141022]/30 to-transparent" />
           
           <div className="absolute bottom-4 left-5 sm:left-8 right-16 z-10">
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              {product.category && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-950/90 text-indigo-200 border border-indigo-400/50 backdrop-blur-md shadow-md">
+                  {product.category === 'automation' 
+                    ? (lang === 'en' ? '🤖 Automation Bot' : '🤖 การตลาด & บอทอัตโนมัติ')
+                    : product.category === 'download'
+                      ? (lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด')
+                      : `🏷️ ${product.category}`}
+                </span>
+              )}
               {product.badge && (
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-900/90 text-purple-200 border border-purple-400/40 backdrop-blur-md shadow-md">
                   {getBadge()}

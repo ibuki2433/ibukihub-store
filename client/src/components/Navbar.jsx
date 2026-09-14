@@ -10,22 +10,57 @@ export default function Navbar({
   onOpenTopup,
   onOpenLibrary,
   onOpenAdmin,
-  categories,
+  categories = [],
   selectedCategory,
   setSelectedCategory,
   onLogoClick,
   onSearchSubmit,
+  products = [],
+  onSelectProduct,
   currentPage
 }) {
   const { user, logout } = useAuth();
   const { lang, toggleLang, t } = useLanguage();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  // Normalize query for flexible search
+  const normalize = (str) => (str || '').toLowerCase().replace(/[\s\.\-_]/g, '');
+
+  const matchingProducts = searchTerm && searchTerm.trim().length > 0 && products && products.length > 0
+    ? products.filter(p => {
+        const q = searchTerm.toLowerCase().trim();
+        const normQ = normalize(q);
+        const name = (p.name || '').toLowerCase();
+        const normName = normalize(name);
+        const shortDesc = (p.shortDesc || '').toLowerCase();
+        const badge = (p.badge || '').toLowerCase();
+        const version = (p.version || '').toLowerCase();
+        const category = (p.category || '').toLowerCase();
+        return (
+          name.includes(q) ||
+          normName.includes(normQ) ||
+          shortDesc.includes(q) ||
+          badge.includes(q) ||
+          version.includes(q) ||
+          category.includes(q)
+        );
+      })
+    : [];
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    setSearchFocused(false);
     if (onSearchSubmit) {
       onSearchSubmit(searchTerm);
+    }
+  };
+
+  const handleSelectLiveProduct = (prod) => {
+    setSearchFocused(false);
+    if (onSelectProduct) {
+      onSelectProduct(prod);
     }
   };
 
@@ -65,28 +100,112 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Search Box */}
-          <form 
-            onSubmit={handleSearchSubmit}
-            className="flex-1 max-w-xs sm:max-w-md mx-2 hidden md:flex items-center"
-          >
-            <div className="relative w-full flex items-center">
-              <input
-                type="text"
-                placeholder={t('navSearchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#161224] text-purple-100 placeholder-purple-300/40 text-xs sm:text-sm px-3.5 py-2 rounded-l-lg border border-purple-500/20 focus:outline-none focus:border-purple-400/50 transition-colors"
-              />
+          {/* Search Box with Live Auto-Suggestions */}
+          <div className="flex-1 max-w-xs sm:max-w-md mx-2 hidden md:block relative">
+            <form 
+              onSubmit={handleSearchSubmit}
+              className="flex items-center"
+            >
+              <div className="relative w-full flex items-center">
+                <input
+                  type="text"
+                  placeholder={t('navSearchPlaceholder')}
+                  value={searchTerm}
+                  onFocus={() => setSearchFocused(true)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setSearchFocused(true);
+                  }}
+                  className="w-full bg-[#161224] text-purple-100 placeholder-purple-300/40 text-xs sm:text-sm px-3.5 py-2 pr-8 rounded-l-lg border border-purple-500/20 focus:outline-none focus:border-purple-400/50 transition-colors"
+                />
+
+                {/* Clear Input Button */}
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchTerm(''); setSearchFocused(false); }}
+                    className="absolute right-2 text-purple-400 hover:text-white text-xs px-1"
+                    title="ล้างคำค้นหา"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
               <button
                 type="submit"
-                className="bg-purple-700/80 hover:bg-purple-600 active:bg-purple-800 text-white px-3.5 py-2 rounded-r-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-colors border border-purple-500/30 border-l-0 shrink-0"
+                className="bg-purple-700/80 hover:bg-purple-600 active:bg-purple-800 text-white px-3.5 py-2 rounded-r-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-colors border border-purple-500/30 border-l-0 shrink-0 shadow-sm"
               >
                 <Search className="w-3.5 h-3.5" />
                 <span>{t('navSearchBtn')}</span>
               </button>
-            </div>
-          </form>
+            </form>
+
+            {/* Live Search Suggestions Dropdown */}
+            {searchFocused && searchTerm.trim().length > 0 && (
+              <div 
+                className="absolute left-0 right-0 top-full mt-1.5 bg-[#171328] border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-purple-900/30"
+                onMouseDown={(e) => e.preventDefault()} // Prevent blur before click
+              >
+                <div className="px-3.5 py-2 bg-purple-950/40 flex items-center justify-between text-[11px] text-purple-300 font-medium">
+                  <span>ผลลัพธ์ที่ตรงกับ "{searchTerm}":</span>
+                  <span className="text-[10px] text-purple-400 bg-purple-900/60 px-1.5 py-0.5 rounded">
+                    {matchingProducts.length} รายการ
+                  </span>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto">
+                  {matchingProducts.length > 0 ? (
+                    matchingProducts.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectLiveProduct(p)}
+                        className="px-3.5 py-2.5 hover:bg-purple-800/30 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="w-9 h-9 rounded-lg object-cover bg-black/40 border border-purple-500/20 shrink-0"
+                          />
+                          <div className="overflow-hidden">
+                            <div className="text-xs font-semibold text-white group-hover:text-purple-300 truncate">
+                              {p.name}
+                            </div>
+                            <div className="text-[10px] text-purple-300/70 truncate flex items-center gap-1.5 mt-0.5">
+                              <span>{p.category === 'automation' ? '🤖 บอทอัตโนมัติ' : '📁 จัดการไฟล์'}</span>
+                              <span>•</span>
+                              <span className="text-purple-400">{p.version || 'v1.0'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-bold text-emerald-400 font-mono">
+                            ฿ {p.price?.toLocaleString()}
+                          </div>
+                          <span className="text-[9px] text-purple-300/60">คลิกเพื่อดู</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-purple-300/60">
+                      ไม่พบซอฟต์แวร์ที่ตรงกับคำค้นหา
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="w-full py-2 px-3 bg-[#130f20] hover:bg-purple-900/40 text-purple-300 text-xs font-medium text-center flex items-center justify-center gap-1 transition-colors"
+                >
+                  <Search className="w-3 h-3" />
+                  <span>ดูในหน้าแคตตาล็อกทั้งหมด</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Nav Items */}
           <nav className="flex items-center gap-2 sm:gap-3">
@@ -103,24 +222,32 @@ export default function Navbar({
 
               {dropdownOpen && (
                 <div 
-                  className="absolute left-0 mt-2 w-56 bg-[#171328] border border-purple-500/30 rounded-xl shadow-2xl py-1.5 z-50 text-xs sm:text-sm"
+                  className="absolute left-0 mt-2 w-60 bg-[#171328] border border-purple-500/30 rounded-xl shadow-2xl py-1.5 z-50 text-xs sm:text-sm"
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
                   <button
                     onClick={() => { setSelectedCategory('all'); setDropdownOpen(false); }}
                     className={`w-full text-left px-3.5 py-2 hover:bg-purple-800/20 transition-colors flex items-center gap-2 ${selectedCategory === 'all' ? 'text-purple-300 font-semibold bg-purple-900/10' : 'text-purple-200/80'}`}
                   >
+                    <span>📦</span>
                     <span>{t('navAllSoftware')}</span>
                   </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => { setSelectedCategory(cat.id); setDropdownOpen(false); }}
-                      className={`w-full text-left px-3.5 py-2 hover:bg-purple-800/20 transition-colors flex items-center gap-2 ${selectedCategory === cat.id ? 'text-purple-300 font-semibold bg-purple-900/10' : 'text-purple-200/80'}`}
-                    >
-                      <span>{cat.id === 'download' ? t('navDownloadCategory') : cat.name}</span>
-                    </button>
-                  ))}
+                  {categories.map((cat) => {
+                    const catName = cat.id === 'download' 
+                      ? (lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด')
+                      : cat.id === 'automation'
+                        ? (lang === 'en' ? '🤖 Automation Bots' : '🤖 การตลาด & บอทอัตโนมัติ')
+                        : cat.name;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => { setSelectedCategory(cat.id); setDropdownOpen(false); }}
+                        className={`w-full text-left px-3.5 py-2 hover:bg-purple-800/20 transition-colors flex items-center gap-2 ${selectedCategory === cat.id ? 'text-purple-300 font-semibold bg-purple-900/10' : 'text-purple-200/80'}`}
+                      >
+                        <span>{catName}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -256,23 +383,67 @@ export default function Navbar({
       </div>
 
       {/* Mobile Search input */}
-      <div className="md:hidden px-4 pb-3">
+      <div className="md:hidden px-4 pb-3 relative">
         <form onSubmit={handleSearchSubmit} className="flex items-center">
-          <input
-            type="text"
-            placeholder={t('navSearchPlaceholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#161224] text-purple-100 placeholder-purple-300/40 text-xs px-3 py-2 rounded-l-lg border border-purple-500/20 focus:outline-none"
-          />
+          <div className="relative w-full flex items-center">
+            <input
+              type="text"
+              placeholder={t('navSearchPlaceholder')}
+              value={searchTerm}
+              onFocus={() => setSearchFocused(true)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setSearchFocused(true);
+              }}
+              className="w-full bg-[#161224] text-purple-100 placeholder-purple-300/40 text-xs px-3 py-2 pr-7 rounded-l-lg border border-purple-500/20 focus:outline-none"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setSearchFocused(false); }}
+                className="absolute right-2 text-purple-400 hover:text-white text-xs px-1"
+              >
+                ✕
+              </button>
+            )}
+          </div>
           <button
             type="submit"
-            className="bg-purple-700/80 text-white px-3 py-2 rounded-r-lg text-xs font-medium flex items-center gap-1 shrink-0"
+            className="bg-purple-700/80 active:bg-purple-600 text-white px-3 py-2 rounded-r-lg text-xs font-medium flex items-center gap-1 shrink-0"
           >
             <Search className="w-3.5 h-3.5" />
             <span>{t('navSearchBtn')}</span>
           </button>
         </form>
+
+        {/* Mobile Suggestions Dropdown */}
+        {searchFocused && searchTerm.trim().length > 0 && (
+          <div 
+            className="absolute left-4 right-4 top-full mt-1 bg-[#171328] border border-purple-500/30 rounded-xl shadow-2xl overflow-hidden z-50 divide-y divide-purple-900/30"
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <div className="px-3 py-1.5 bg-purple-950/50 flex items-center justify-between text-[10px] text-purple-300">
+              <span>ผลลัพธ์ "{searchTerm}":</span>
+              <span>{matchingProducts.length} รายการ</span>
+            </div>
+            <div className="max-h-52 overflow-y-auto">
+              {matchingProducts.length > 0 ? (
+                matchingProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => handleSelectLiveProduct(p)}
+                    className="px-3 py-2 hover:bg-purple-800/30 flex items-center justify-between gap-2 text-xs"
+                  >
+                    <div className="truncate font-medium text-white">{p.name}</div>
+                    <div className="text-emerald-400 font-mono font-bold shrink-0">฿{p.price}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 text-center text-xs text-purple-300/60">ไม่พบสินค้า</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

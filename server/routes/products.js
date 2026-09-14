@@ -3,11 +3,22 @@ import { db } from '../db.js';
 
 const router = express.Router();
 
+// Get all categories
+router.get('/categories', (req, res) => {
+  try {
+    const categories = db.getCategories() || [];
+    res.json({ success: true, categories });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all products
 router.get('/', (req, res) => {
   try {
     const { category, search } = req.query;
     let products = db.getProducts();
+    const categories = db.getCategories() || [];
 
     if (category && category !== 'all') {
       products = products.filter(p => p.category === category);
@@ -15,14 +26,24 @@ router.get('/', (req, res) => {
 
     if (search) {
       const q = search.toLowerCase();
-      products = products.filter(p => 
-        p.name.toLowerCase().includes(q) || 
-        (p.shortDesc && p.shortDesc.toLowerCase().includes(q)) ||
-        (p.badge && p.badge.toLowerCase().includes(q))
-      );
+      const normQ = q.replace(/[\s\.\-_]/g, '');
+      products = products.filter(p => {
+        const name = (p.name || '').toLowerCase();
+        const normName = name.replace(/[\s\.\-_]/g, '');
+        const shortDesc = (p.shortDesc || '').toLowerCase();
+        const badge = (p.badge || '').toLowerCase();
+        const version = (p.version || '').toLowerCase();
+        return (
+          name.includes(q) ||
+          normName.includes(normQ) ||
+          shortDesc.includes(q) ||
+          badge.includes(q) ||
+          version.includes(q)
+        );
+      });
     }
 
-    res.json({ success: true, products });
+    res.json({ success: true, products, categories });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
