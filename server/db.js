@@ -763,11 +763,17 @@ class Database {
       const boundMachineIds = Array.from(new Set(userOrders.map(o => o.machineId).filter(Boolean)));
       const latestMachineId = boundMachineIds.length > 0 ? boundMachineIds[0] : "-";
 
-      let method = "ฟอร์มเว็บปกติ";
-      if (u.facebookId) {
+      let method = "สมัครผ่านหน้าเว็บ";
+      if (u.username === 'ibuki' || u.id === 'usr_admin_ibuki' || u.isRootAdmin) {
+        method = "👑 แอดมินหลักระบบ (ไอดีแม่)";
+      } else if (u.facebookId) {
         method = `Facebook (ID: ${u.facebookId})`;
-      } else if (u.phone) {
-        method = `เบอร์โทรศัพท์ (SMS OTP: ${u.phone})`;
+      } else if (u.email && u.email.endsWith('@gmail.com')) {
+        method = `Gmail OTP (${u.email})`;
+      } else if (u.phone && u.phone !== '-') {
+        method = `เบอร์โทรศัพท์ (${u.phone})`;
+      } else if (u.email && u.email !== '-') {
+        method = `อีเมล (${u.email})`;
       }
 
       return {

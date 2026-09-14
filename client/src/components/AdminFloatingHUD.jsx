@@ -4,7 +4,8 @@ import {
   Maximize2, Minimize2, Move, Search, Eye, EyeOff, 
   ExternalLink, CheckCircle2, AlertCircle, RefreshCw, 
   Clock, ArrowUpRight, Phone, Mail, Edit3, Trash2, 
-  Sparkles, Check, Copy, ChevronRight, Package 
+  Sparkles, Check, Copy, ChevronRight, Package,
+  Plus, UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -32,9 +33,27 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
   // Member detail modal (for viewing specific member's purchases)
   const [selectedMemberForHistory, setSelectedMemberForHistory] = useState(null);
 
-  // Edit balance modal/inline
-  const [editingBalanceUser, setEditingBalanceUser] = useState(null);
-  const [newBalanceInput, setNewBalanceInput] = useState('');
+  // Balance adjustment modal state
+  const [balanceModal, setBalanceModal] = useState({
+    isOpen: false,
+    member: null,
+    mode: 'add', // 'add', 'deduct', 'set'
+    amount: '',
+    note: ''
+  });
+  const [submittingBalance, setSubmittingBalance] = useState(false);
+
+  // Manual Add Member Modal state
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [newMemberForm, setNewMemberForm] = useState({
+    username: '',
+    password: '',
+    displayName: '',
+    email: '',
+    phone: '',
+    balance: 0
+  });
+  const [creatingMember, setCreatingMember] = useState(false);
 
   // Alerts
   const [actionMsg, setActionMsg] = useState(null);
@@ -156,28 +175,96 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
     setRevealedPasswords(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
 
-  // Update member balance
-  const handleSaveBalance = async (memberId) => {
-    if (newBalanceInput === '' || isNaN(Number(newBalanceInput))) return;
+  // Open Balance Modal
+  const openBalanceModal = (member, mode = 'add') => {
+    setBalanceModal({
+      isOpen: true,
+      member,
+      mode,
+      amount: '',
+      note: ''
+    });
+    setActionErr(null);
+    setActionMsg(null);
+  };
+
+  // Submit Balance Adjustment (Add / Deduct / Set)
+  const handleConfirmBalanceAdjustment = async (e) => {
+    if (e) e.preventDefault();
+    if (!balanceModal.member) return;
+    const num = Number(balanceModal.amount);
+    if (isNaN(num) || num <= 0) {
+      setActionErr("กรุณาระบุจำนวนเงินที่มากกว่า 0 บาท");
+      return;
+    }
+
+    setSubmittingBalance(true);
+    setActionErr(null);
+    setActionMsg(null);
     try {
-      const res = await fetch(`/api/admin/members/${memberId}/balance`, {
+      const payload = {
+        mode: balanceModal.mode,
+        amount: num,
+        note: balanceModal.note ? balanceModal.note.trim() : ''
+      };
+      if (balanceModal.mode === 'set') {
+        payload.balance = num;
+      }
+      const res = await fetch(`/api/admin/members/${balanceModal.member.id}/balance`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-user-id': user.id
         },
-        body: JSON.stringify({ balance: Number(newBalanceInput) })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      setActionMsg(`อัปเดตยอดเงินสำเร็จ: ฿${data.user.balance}`);
-      setEditingBalanceUser(null);
+      setActionMsg(data.message || "ปรับยอดเงินเรียบร้อยแล้ว");
+      setBalanceModal({ isOpen: false, member: null, mode: 'add', amount: '', note: '' });
       fetchAdminData();
-      setTimeout(() => setActionMsg(null), 3000);
+      setTimeout(() => setActionMsg(null), 4000);
     } catch (err) {
-      setActionErr(err.message);
-      setTimeout(() => setActionErr(null), 3000);
+      setActionErr("ปรับยอดเงินไม่สำเร็จ: " + err.message);
+      setTimeout(() => setActionErr(null), 4000);
+    } finally {
+      setSubmittingBalance(false);
+    }
+  };
+
+  // Create Member Manually
+  const handleCreateMember = async (e) => {
+    if (e) e.preventDefault();
+    if (!newMemberForm.username || !newMemberForm.password) {
+      setActionErr("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
+      return;
+    }
+    setCreatingMember(true);
+    setActionErr(null);
+    setActionMsg(null);
+    try {
+      const res = await fetch('/api/admin/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(newMemberForm)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setActionMsg(data.message || "เพิ่มสมาชิกใหม่เรียบร้อยแล้ว");
+      setShowAddMemberModal(false);
+      setNewMemberForm({ username: '', password: '', displayName: '', email: '', phone: '', balance: 0 });
+      fetchAdminData();
+      setTimeout(() => setActionMsg(null), 4000);
+    } catch (err) {
+      setActionErr("เพิ่มสมาชิกไม่สำเร็จ: " + err.message);
+      setTimeout(() => setActionErr(null), 4000);
+    } finally {
+      setCreatingMember(false);
     }
   };
 
@@ -426,6 +513,17 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
                       className="w-full bg-[#1c1730] text-neutral-200 placeholder-neutral-500 text-xs pl-9 pr-3 py-2 rounded-xl border border-purple-500/30 focus:outline-none focus:ring-1 focus:ring-purple-400"
                     />
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAddMemberModal(true)}
+                    className="px-2.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shrink-0 active:scale-95 transition-all"
+                    title="เพิ่มสมาชิกใหม่ด้วยตนเอง"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ เพิ่มสมาชิก</span>
+                  </button>
+
                   <span className="text-[11px] text-purple-300/80 shrink-0 font-medium">
                     พบ {filteredMembers.length} คน
                   </span>
@@ -435,14 +533,13 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
                 <div className="space-y-2.5">
                   {filteredMembers.map((member) => {
                     const isPassRevealed = !!revealedPasswords[member.id];
-                    const isEditingBal = editingBalanceUser === member.id;
 
                     return (
                       <div 
                         key={member.id}
                         className="p-3.5 rounded-xl bg-[#1a142e] border border-purple-500/30 hover:border-purple-400/50 transition-all space-y-2.5"
                       >
-                        {/* Member Top Row: Name, Username, Role, Balance */}
+                        {/* Member Top Row: Name, Username, Role, Balance & Action buttons */}
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5">
                             <div className="w-9 h-9 rounded-xl bg-purple-900/60 border border-purple-500/40 flex items-center justify-center font-bold text-white overflow-hidden shrink-0">
@@ -472,52 +569,45 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
                             </div>
                           </div>
 
-                          {/* Balance & Edit */}
-                          <div className="text-right">
-                            {isEditingBal ? (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  value={newBalanceInput}
-                                  onChange={(e) => setNewBalanceInput(e.target.value)}
-                                  className="w-20 bg-black/60 text-emerald-400 px-2 py-1 rounded text-xs border border-emerald-500/50 text-right font-mono"
-                                  placeholder="ยอดเงิน"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleSaveBalance(member.id)}
-                                  className="p-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white"
-                                  title="บันทึก"
-                                >
-                                  <Check className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingBalanceUser(null)}
-                                  className="p-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-                                  title="ยกเลิก"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1.5 justify-end">
-                                <span className="text-xs font-mono font-bold text-emerald-400">
-                                  ฿{Number(member.balance || 0).toLocaleString()}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingBalanceUser(member.id);
-                                    setNewBalanceInput(member.balance);
-                                  }}
-                                  title="แก้ไขยอดเงิน"
-                                  className="p-1 rounded text-purple-300 hover:text-white hover:bg-purple-900/50"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            )}
+                          {/* Balance & Quick Adjustment Actions */}
+                          <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-neutral-400">คงเหลือ:</span>
+                              <span className="text-xs font-mono font-bold text-emerald-400">
+                                ฿{Number(member.balance || 0).toLocaleString()}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openBalanceModal(member, 'add')}
+                                className="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95 shadow-sm"
+                                title="เพิ่มเงินให้สมาชิก"
+                              >
+                                <Plus className="w-3 h-3 text-emerald-400" />
+                                <span>เพิ่มเงิน</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => openBalanceModal(member, 'deduct')}
+                                className="px-2 py-1 rounded-lg bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 border border-rose-500/40 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95 shadow-sm"
+                                title="ลดเงินสมาชิก"
+                              >
+                                <Minus className="w-3 h-3 text-rose-400" />
+                                <span>ลดเงิน</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => openBalanceModal(member, 'set')}
+                                className="p-1 rounded-lg bg-purple-900/40 hover:bg-purple-800/60 text-purple-300 border border-purple-500/30 transition-colors"
+                                title="กำหนดยอดเงินตรง"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -915,6 +1005,324 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
                 ปิดหน้าต่าง
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* BALANCE ADJUSTMENT MODAL (ADD / DEDUCT / SET)            */}
+      {/* ======================================================== */}
+      {balanceModal.isOpen && balanceModal.member && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#181328] border border-purple-500/40 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-purple-900/50">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-xl border ${
+                  balanceModal.mode === 'add' 
+                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400' 
+                    : balanceModal.mode === 'deduct' 
+                      ? 'bg-rose-950/60 border-rose-500/40 text-rose-400' 
+                      : 'bg-purple-950/60 border-purple-500/40 text-purple-400'
+                }`}>
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">
+                    {balanceModal.mode === 'add' 
+                      ? 'เพิ่มเงินเข้าระบบสมาชิก' 
+                      : balanceModal.mode === 'deduct' 
+                        ? 'ลดเงิน / หักเงินสมาชิก' 
+                        : 'กำหนดยอดเงินสมาชิกโดยตรง'}
+                  </h3>
+                  <p className="text-xs text-purple-300/80">
+                    สมาชิก: <span className="text-white font-bold">{balanceModal.member.displayName}</span> (@{balanceModal.member.username})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, isOpen: false })}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Mode Switch Tabs */}
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/40 rounded-xl border border-purple-900/40">
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'add' })}
+                className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                  balanceModal.mode === 'add'
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <Plus className="w-3 h-3" />
+                <span>เพิ่มเงิน</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'deduct' })}
+                className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                  balanceModal.mode === 'deduct'
+                    ? 'bg-rose-600 text-white shadow-md'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <Minus className="w-3 h-3" />
+                <span>ลดเงิน</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceModal({ ...balanceModal, mode: 'set' })}
+                className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                  balanceModal.mode === 'set'
+                    ? 'bg-purple-600 text-white shadow-md'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>กำหนดยอด</span>
+              </button>
+            </div>
+
+            {/* Current Balance & Live Calculation Preview */}
+            <div className="p-3 rounded-xl bg-black/50 border border-purple-500/20 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-neutral-400 block">ยอดคงเหลือปัจจุบัน</span>
+                <span className="text-sm font-bold font-mono text-purple-200">
+                  ฿{Number(balanceModal.member.balance || 0).toLocaleString()}
+                </span>
+              </div>
+
+              {balanceModal.amount && !isNaN(Number(balanceModal.amount)) && Number(balanceModal.amount) > 0 && (
+                <div className="text-right">
+                  <span className="text-[10px] text-neutral-400 block">ยอดใหม่หลังบันทึก</span>
+                  <span className={`text-sm font-bold font-mono ${
+                    balanceModal.mode === 'add' 
+                      ? 'text-emerald-400' 
+                      : balanceModal.mode === 'deduct' 
+                        ? 'text-rose-400' 
+                        : 'text-amber-400'
+                  }`}>
+                    ฿{(
+                      balanceModal.mode === 'add'
+                        ? Number(balanceModal.member.balance || 0) + Number(balanceModal.amount)
+                        : balanceModal.mode === 'deduct'
+                          ? Math.max(0, Number(balanceModal.member.balance || 0) - Number(balanceModal.amount))
+                          : Number(balanceModal.amount)
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Amount Pills */}
+            <div>
+              <label className="block text-xs font-medium text-purple-200 mb-1.5">จำนวนเงินด่วน:</label>
+              <div className="flex flex-wrap gap-1.5">
+                {[50, 100, 300, 500, 1000, 2000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setBalanceModal({ ...balanceModal, amount: amt.toString() })}
+                    className="px-2.5 py-1 rounded-lg bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-xs font-mono font-medium transition-all active:scale-95"
+                  >
+                    {balanceModal.mode === 'add' ? `+฿${amt}` : balanceModal.mode === 'deduct' ? `-฿${amt}` : `฿${amt}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleConfirmBalanceAdjustment} className="space-y-3 pt-1 text-xs">
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">
+                  {balanceModal.mode === 'add' 
+                    ? 'จำนวนเงินที่ต้องการเพิ่ม (บาท):' 
+                    : balanceModal.mode === 'deduct' 
+                      ? 'จำนวนเงินที่ต้องการลด (บาท):' 
+                      : 'กำหนดยอดเงินใหม่ (บาท):'}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  required
+                  autoFocus
+                  placeholder="เช่น 100"
+                  value={balanceModal.amount}
+                  onChange={(e) => setBalanceModal({ ...balanceModal, amount: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 font-mono font-bold text-white text-sm focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">
+                  หมายเหตุ / เหตุผลบันทึกช่วยจำ (ไม่บังคับ):
+                </label>
+                <input
+                  type="text"
+                  placeholder="เช่น โอนเงินตรงให้แอดมิน, กิจกรรมสุ่มแจก, คืนเงิน..."
+                  value={balanceModal.note}
+                  onChange={(e) => setBalanceModal({ ...balanceModal, note: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-purple-100 focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={submittingBalance}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 ${
+                    balanceModal.mode === 'add'
+                      ? 'bg-emerald-600 hover:bg-emerald-500'
+                      : balanceModal.mode === 'deduct'
+                        ? 'bg-rose-600 hover:bg-rose-500'
+                        : 'bg-purple-600 hover:bg-purple-500'
+                  }`}
+                >
+                  {submittingBalance 
+                    ? 'กำลังดำเนินการ...' 
+                    : balanceModal.mode === 'add'
+                      ? `ยืนยันเพิ่มเงิน (+฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`
+                      : balanceModal.mode === 'deduct'
+                        ? `ยืนยันลดเงิน (-฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`
+                        : `ยืนยันกำหนดยอด (฿${balanceModal.amount ? Number(balanceModal.amount).toLocaleString() : '0'})`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBalanceModal({ ...balanceModal, isOpen: false })}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium transition-colors"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MANUAL ADD MEMBER MODAL                                  */}
+      {/* ======================================================== */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#181328] border border-purple-500/40 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-purple-900/50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-purple-950/80 border border-purple-500/40 text-purple-300">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">เพิ่มสมาชิกใหม่ด้วยตนเอง</h3>
+                  <p className="text-xs text-purple-300/80">สร้างบัญชีผู้ใช้ใหม่ในระบบโดยตรง</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAddMemberModal(false)}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateMember} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">ชื่อผู้ใช้งาน (Username) *:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="เช่น user_vip, somchai2026"
+                  value={newMemberForm.username}
+                  onChange={(e) => setNewMemberForm({ ...newMemberForm, username: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">รหัสผ่าน (Password) *:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="เช่น 123456"
+                  value={newMemberForm.password}
+                  onChange={(e) => setNewMemberForm({ ...newMemberForm, password: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-medium text-purple-200 mb-1">ชื่อที่แสดง (Display Name):</label>
+                  <input
+                    type="text"
+                    placeholder="เช่น สมชาย ใจดี"
+                    value={newMemberForm.displayName}
+                    onChange={(e) => setNewMemberForm({ ...newMemberForm, displayName: e.target.value })}
+                    className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-purple-200 mb-1">ยอดเงินเริ่มต้น (บาท):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={newMemberForm.balance}
+                    onChange={(e) => setNewMemberForm({ ...newMemberForm, balance: Number(e.target.value) })}
+                    className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 font-mono text-white focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">อีเมล (Email):</label>
+                <input
+                  type="email"
+                  placeholder="เช่น customer@gmail.com"
+                  value={newMemberForm.email}
+                  onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium text-purple-200 mb-1">เบอร์โทรศัพท์ (Phone):</label>
+                <input
+                  type="text"
+                  placeholder="เช่น 0812345678"
+                  value={newMemberForm.phone}
+                  onChange={(e) => setNewMemberForm({ ...newMemberForm, phone: e.target.value })}
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={creatingMember}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                >
+                  {creatingMember ? 'กำลังสร้างบัญชี...' : 'ยืนยันสร้างสมาชิกใหม่'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddMemberModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium transition-colors"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

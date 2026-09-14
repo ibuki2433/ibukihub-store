@@ -149,6 +149,36 @@ router.get('/members', requireAdmin, (req, res) => {
   }
 });
 
+// Add new member manually by admin
+router.post('/members', requireAdmin, (req, res) => {
+  try {
+    const { username, password, email, displayName, phone, balance, role } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: "กรุณากรอกชื่อผู้ใช้และรหัสผ่าน" });
+    }
+    const cleanUsername = username.trim();
+    if (db.getUserByUsername(cleanUsername)) {
+      return res.status(400).json({ error: "ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว" });
+    }
+    const newUser = db.createUser({
+      username: cleanUsername,
+      password: password.trim(),
+      email: (email && email.trim()) || `${cleanUsername}@customer.local`,
+      displayName: (displayName && displayName.trim()) || cleanUsername,
+      phone: (phone && phone.trim()) || "",
+      balance: Number(balance) || 0,
+      role: role === 'admin' ? 'admin' : 'member'
+    });
+    res.json({
+      success: true,
+      member: newUser,
+      message: `เพิ่มสมาชิก "${newUser.username}" เรียบร้อยแล้ว (ยอดเงิน: ฿${Number(newUser.balance).toLocaleString()})`
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Update member balance (Add, Deduct, Set)
 router.put('/members/:id/balance', requireAdmin, (req, res) => {
   try {
