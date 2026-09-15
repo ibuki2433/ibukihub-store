@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Search, ChevronDown, Download, Wallet, User, LogIn, UserPlus, LogOut, ShieldCheck, Sparkles, Globe } from 'lucide-react';
+import { Layers, Search, ChevronDown, Download, Wallet, User, LogIn, UserPlus, LogOut, ShieldCheck, Sparkles, Globe, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -8,6 +8,7 @@ export default function Navbar({
   setSearchTerm,
   onOpenAuth,
   onOpenTopup,
+  onOpenRedeem,
   onOpenLibrary,
   onOpenAdmin,
   categories = [],
@@ -263,6 +264,16 @@ export default function Navbar({
               </button>
             )}
 
+            {/* Redeem Promo Code Button */}
+            <button
+              onClick={onOpenRedeem}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-neutral-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
+              title="ใส่โค้ดรับเงินฟรี (เช่น IbukiCh รับ ฿50)"
+            >
+              <Gift className="w-3.5 h-3.5 text-neutral-950 shrink-0" />
+              <span>ใส่โค้ด</span>
+            </button>
+
             {/* Top-up Button */}
             <button
               onClick={onOpenTopup}
@@ -328,6 +339,14 @@ export default function Navbar({
                     >
                       <Wallet className="w-4 h-4 text-purple-400" />
                       <span>{t('navTopup')}</span>
+                    </button>
+
+                    <button
+                      onClick={() => { onOpenRedeem(); setUserMenuOpen(false); }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-amber-950/30 text-amber-300 flex items-center gap-2 font-semibold"
+                    >
+                      <Gift className="w-4 h-4 text-amber-400" />
+                      <span>ใส่โค้ดรับเงินฟรี (+฿50)</span>
                     </button>
 
                     {user.role === 'admin' && (

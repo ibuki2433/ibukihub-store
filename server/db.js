@@ -1222,8 +1222,8 @@ class Database {
         expiresAt: null
       });
     } else {
-      ibukiCode.rewardAmount = 100;
-      ibukiCode.description = "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 100 บาทฟรี";
+      ibukiCode.rewardAmount = 50;
+      ibukiCode.description = "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 50 บาทฟรี";
       ibukiCode.active = true;
     }
   }
@@ -1267,7 +1267,7 @@ class Database {
       throw new Error(`คุณเคยใช้โค้ด "${promo.code}" ไปแล้ว (สามารถใช้ได้ 1 ครั้งต่อ 1 บัญชีเท่านั้น)`);
     }
 
-    const reward = Number(promo.rewardAmount) || 100;
+    const reward = Number(promo.rewardAmount) || 50;
     user.balance = (user.balance || 0) + reward;
     promo.usedCount = (promo.usedCount || 0) + 1;
 

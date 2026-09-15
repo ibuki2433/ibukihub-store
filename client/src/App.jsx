@@ -10,6 +10,7 @@ import ProductCatalog from './components/ProductCatalog';
 import ProductModal from './components/ProductModal';
 import BuyModal from './components/BuyModal';
 import TopupModal from './components/TopupModal';
+import RedeemCodeModal from './components/RedeemCodeModal';
 import TopupPage from './components/TopupPage';
 import AuthPage from './components/AuthPage';
 import MyLibraryModal from './components/MyLibraryModal';
@@ -23,6 +24,7 @@ function StoreMain() {
   const { user } = useAuth();
   const { t, lang } = useLanguage();
   const [currentPage, setCurrentPage] = useState('shop'); // 'shop', 'signin', 'signup'
+  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([
     { id: "download", name: "จัดการไฟล์และดาวน์โหลด" },
@@ -201,16 +203,29 @@ function StoreMain() {
     <div className="min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white">
       
       {/* Announcement Marquee Bar */}
-      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-4 border-b border-purple-900/30 overflow-hidden flex items-center gap-2">
-        <div className="flex items-center gap-1 font-semibold text-purple-300 shrink-0">
-          <Bell className="w-3.5 h-3.5 text-purple-400" />
-          <span className="hidden sm:inline">{t('announcementPrefix')}</span>
+      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-4 border-b border-purple-900/30 overflow-hidden flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 overflow-hidden flex-1">
+          <div className="flex items-center gap-1 font-semibold text-purple-300 shrink-0">
+            <Bell className="w-3.5 h-3.5 text-purple-400" />
+            <span className="hidden sm:inline">{t('announcementPrefix')}</span>
+          </div>
+          <div className="whitespace-nowrap overflow-hidden text-ellipsis">
+            <span className="font-normal text-purple-200/80">
+              {lang === 'en' ? t('announcementText') : (settings?.announcement || t('announcementText'))}
+            </span>
+          </div>
         </div>
-        <div className="whitespace-nowrap overflow-hidden text-ellipsis flex-1">
-          <span className="font-normal text-purple-200/80">
-            {lang === 'en' ? t('announcementText') : (settings?.announcement || t('announcementText'))}
-          </span>
-        </div>
+
+        {/* Quick Promo Code Badge */}
+        <button
+          onClick={() => setIsRedeemOpen(true)}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-orange-500/25 to-amber-500/25 hover:from-amber-500/40 hover:to-orange-500/40 border border-amber-400/50 text-amber-300 hover:text-white text-[11px] font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95 cursor-pointer"
+          title="คลิกเพื่อใส่โค้ดรับเงิน 50 บาทฟรี"
+        >
+          <span>🎁 โค้ดฟรี:</span>
+          <span className="font-mono underline text-amber-200">IbukiCh</span>
+          <span className="text-emerald-400 font-extrabold">+฿50</span>
+        </button>
       </div>
 
       {/* Top Navbar */}
@@ -219,6 +234,7 @@ function StoreMain() {
         setSearchTerm={setSearchTerm}
         onOpenAuth={handleOpenAuth}
         onOpenTopup={handleOpenTopup}
+        onOpenRedeem={() => setIsRedeemOpen(true)}
         onOpenLibrary={() => setIsLibraryOpen(true)}
         onOpenAdmin={handleOpenAdmin}
         categories={categories}
@@ -376,6 +392,13 @@ function StoreMain() {
       {isTopupOpen && (
         <TopupModal
           onClose={() => setIsTopupOpen(false)}
+          onOpenAuth={handleOpenAuth}
+        />
+      )}
+
+      {isRedeemOpen && (
+        <RedeemCodeModal
+          onClose={() => setIsRedeemOpen(false)}
           onOpenAuth={handleOpenAuth}
         />
       )}
