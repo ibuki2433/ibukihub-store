@@ -329,44 +329,7 @@
       "status": "completed"
     }
   ],
-  "topups": [
-    {
-      "id": "TOP-88171",
-      "userId": "usr_admin_ibuki",
-      "username": "ibuki",
-      "amount": -9.99e+34,
-      "channel": "แอดมินลดเงิน -฿99,900,000,000,000,000,000,000,000,000,000,000",
-      "status": "approved",
-      "createdAt": "2026-09-15T15:08:04.686Z"
-    },
-    {
-      "id": "TOP-12126",
-      "userId": "usr_admin_ibuki",
-      "username": "ibuki",
-      "amount": -2e+32,
-      "channel": "แอดมินลดเงิน -฿200,000,000,000,000,000,000,000,000,000,000",
-      "status": "approved",
-      "createdAt": "2026-09-15T15:07:43.316Z"
-    },
-    {
-      "id": "TOP-44246",
-      "userId": "usr_admin_ibuki",
-      "username": "ibuki",
-      "amount": -2e+26,
-      "channel": "แอดมินลดเงิน -฿200,000,000,000,000,000,000,000,000",
-      "status": "approved",
-      "createdAt": "2026-09-15T15:07:34.180Z"
-    },
-    {
-      "id": "TOP-44601",
-      "userId": "usr_admin_ibuki",
-      "username": "ibuki",
-      "amount": -20000000000000000,
-      "channel": "แอดมินลดเงิน -฿20,000,000,000,000,000",
-      "status": "approved",
-      "createdAt": "2026-09-15T15:07:28.069Z"
-    }
-  ],
+  "topups": [],
   "promoCodes": [
     {
       "id": "promo_ibukich",

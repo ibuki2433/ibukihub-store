@@ -399,7 +399,7 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
           >
             <span>👥 {members.length} สมาชิก</span>
             <span>•</span>
-            <span className="text-emerald-400 font-bold">฿{totalTopupAmount.toLocaleString()}</span>
+            <span className="text-amber-400 font-bold">฿{totalSalesAmount.toLocaleString()}</span>
             <ChevronRight className="w-3.5 h-3.5 text-purple-300" />
           </button>
         </div>
@@ -525,19 +525,6 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
             >
               <Users className="w-3.5 h-3.5 text-purple-300" />
               <span>สมาชิกทั้งหมด ({members.length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('topups')}
-              className={`py-2 px-3 rounded-t-xl font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'topups'
-                  ? 'bg-purple-900/50 text-white border-t-2 border-purple-400'
-                  : 'text-purple-300/70 hover:text-white hover:bg-purple-950/30'
-              }`}
-            >
-              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-              <span>เงินเติมเข้า ({topups.length})</span>
             </button>
 
             <button
@@ -759,81 +746,7 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
             )}
 
             {/* ======================================================== */}
-            {/* TAB 2: TOP-UPS LIST (WHO TOPPED UP, HOW MUCH, CHANNEL, TIME) */}
-            {/* ======================================================== */}
-            {activeTab === 'topups' && (
-              <div className="space-y-3">
-                {/* Summary Banner */}
-                <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-950/60 to-purple-950/60 border border-emerald-500/40 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">
-                      ยอดเงินเติมเข้าทั้งหมด
-                    </span>
-                    <div className="text-xl font-extrabold text-emerald-400 font-mono">
-                      ฿{totalTopupAmount.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] text-neutral-400">รายการเติมเงินทั้งหมด</span>
-                    <div className="text-sm font-bold text-white">{topups.length} รายการ</div>
-                  </div>
-                </div>
-
-                {/* Topups list */}
-                <div className="space-y-2">
-                  {topups.length === 0 ? (
-                    <div className="text-center py-6 text-neutral-500">
-                      ยังไม่มีรายการเติมเงิน
-                    </div>
-                  ) : (
-                    topups.map((topup) => (
-                      <div 
-                        key={topup.id}
-                        className="p-3 rounded-xl bg-[#1a142e] border border-purple-500/30 flex items-center justify-between gap-3 text-xs"
-                      >
-                        {/* Member and Channel */}
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-white text-sm">
-                              {topup.displayName || topup.username}
-                            </span>
-                            <span className="text-[10px] text-neutral-400">(@{topup.username})</span>
-                          </div>
-                          <div className="text-[11px] text-purple-300 flex items-center gap-1">
-                            <span className="font-semibold text-purple-200">ช่องทาง:</span>
-                            <span className="bg-purple-950 px-2 py-0.5 rounded border border-purple-500/30">
-                              {topup.channel}
-                            </span>
-                          </div>
-                          {topup.voucherUrl && (
-                            <div className="text-[10px] text-neutral-400 truncate max-w-xs select-all">
-                              ซอง: {topup.voucherUrl}
-                            </div>
-                          )}
-                          <div className="text-[10px] text-neutral-500 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>เวลา: {new Date(topup.createdAt).toLocaleString('th-TH')}</span>
-                          </div>
-                        </div>
-
-                        {/* Amount & Status */}
-                        <div className="text-right shrink-0">
-                          <div className="text-sm font-extrabold text-emerald-400 font-mono">
-                            +฿{Number(topup.amount).toLocaleString()}
-                          </div>
-                          <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-semibold">
-                            {topup.status === 'approved' ? '✓ สำเร็จ' : topup.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ======================================================== */}
-            {/* TAB 3: PURCHASES / ORDERS (WHAT EACH MEMBER PURCHASED) */}
+            {/* TAB: PURCHASES / ORDERS (WHAT EACH MEMBER PURCHASED) */}
             {/* ======================================================== */}
             {activeTab === 'orders' && (
               <div className="space-y-3">
@@ -952,8 +865,7 @@ export default function AdminFloatingHUD({ onOpenFullDashboard }) {
           {/* Window Footer with stats summary */}
           <div className="px-4 py-2.5 bg-[#120f20] border-t border-purple-900/50 flex items-center justify-between text-[11px] text-neutral-400">
             <span>สมาชิก: <strong className="text-white">{members.length}</strong> คน</span>
-            <span>เงินเข้า: <strong className="text-emerald-400">฿{totalTopupAmount.toLocaleString()}</strong></span>
-            <span>ยอดขาย: <strong className="text-amber-400">฿{totalSalesAmount.toLocaleString()}</strong></span>
+            <span>ยอดขายรวม: <strong className="text-amber-400">฿{totalSalesAmount.toLocaleString()}</strong></span>
           </div>
         </div>
       )}

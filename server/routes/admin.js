@@ -241,15 +241,6 @@ router.put('/members/:id/balance', requireAdmin, (req, res) => {
       }
       finalBalance = Math.max(0, currentBal - numAmount);
       actionLabel = `แอดมินลดเงิน -฿${numAmount.toLocaleString()}${note ? ' (' + note + ')' : ''}`;
-      
-      // Record topup deduction history
-      db.createTopup({
-        userId: member.id,
-        username: member.username,
-        amount: -numAmount,
-        channel: actionLabel,
-        status: 'SUCCESS'
-      });
     } else {
       // Direct set
       if (balance === undefined || isNaN(Number(balance))) {
