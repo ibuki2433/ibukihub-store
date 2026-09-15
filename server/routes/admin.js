@@ -615,4 +615,69 @@ router.post('/restore-db', requireAdmin, express.json({ limit: '10mb' }), (req, 
   }
 });
 
+// ========================================================
+// PROMO CODES / GIFT CODES ADMIN MANAGEMENT
+// ========================================================
+router.get('/promo-codes', requireAdmin, (req, res) => {
+  try {
+    const promoCodes = db.getPromoCodes();
+    const history = db.getRedeemHistory();
+    res.json({
+      success: true,
+      promoCodes,
+      history,
+      totalCodes: promoCodes.length,
+      totalRedeemed: history.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/promo-codes', requireAdmin, (req, res) => {
+  try {
+    const { code, rewardAmount, description, maxUses, expiresAt } = req.body;
+    const newCode = db.createPromoCode({
+      code,
+      rewardAmount,
+      description,
+      maxUses,
+      expiresAt
+    });
+    res.json({
+      success: true,
+      promoCode: newCode,
+      message: `สร้างโค้ด "${newCode.code}" (มูลค่า ฿${newCode.rewardAmount}) เรียบร้อยแล้ว`
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.put('/promo-codes/:id/toggle', requireAdmin, (req, res) => {
+  try {
+    const updated = db.togglePromoCode(req.params.id);
+    res.json({
+      success: true,
+      promoCode: updated,
+      message: `โค้ด "${updated.code}" ${updated.active ? 'เปิดใช้งาน' : 'ปิดการใช้งาน'} แล้ว`
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/promo-codes/:id', requireAdmin, (req, res) => {
+  try {
+    const deleted = db.deletePromoCode(req.params.id);
+    res.json({
+      success: true,
+      deleted,
+      message: `ลบโค้ด "${deleted.code}" เรียบร้อยแล้ว`
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 export default router;

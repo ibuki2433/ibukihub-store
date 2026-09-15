@@ -3,7 +3,8 @@ import {
   X, LayoutDashboard, PackagePlus, Key, ShoppingCart, 
   Wallet, Settings, Trash2, Plus, Minus, Upload, CheckCircle2, 
   AlertCircle, HardDrive, Terminal, Users, Phone, Mail, 
-  Eye, EyeOff, Edit3, ChevronRight, Smartphone, Send, ShieldCheck, Download
+  Eye, EyeOff, Edit3, ChevronRight, Smartphone, Send, ShieldCheck, Download,
+  Gift, Tag, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,6 +17,15 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
   const [orders, setOrders] = useState([]);
   const [topups, setTopups] = useState([]);
   const [members, setMembers] = useState([]);
+  const [promoCodes, setPromoCodes] = useState([]);
+  const [redeemHistory, setRedeemHistory] = useState([]);
+  const [newPromoForm, setNewPromoForm] = useState({
+    code: '',
+    rewardAmount: 100,
+    description: '',
+    maxUses: 999999
+  });
+  const [creatingPromo, setCreatingPromo] = useState(false);
   const [revealedPasswords, setRevealedPasswords] = useState({});
   const [editingBalanceUser, setEditingBalanceUser] = useState(null);
   const [newBalanceInput, setNewBalanceInput] = useState('');
@@ -142,6 +152,13 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
       const dataEmail = await resEmail.json();
       if (resEmail.ok && dataEmail.config) {
         setEmailConfig(dataEmail.config);
+      }
+
+      const resPromos = await fetch(`/api/admin/promo-codes?_t=${timestamp}`, noCacheOpts);
+      const dataPromos = await resPromos.json();
+      if (resPromos.ok) {
+        setPromoCodes(dataPromos.promoCodes || []);
+        setRedeemHistory(dataPromos.history || []);
       }
 
     } catch (e) {
@@ -371,6 +388,67 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     }
   };
 
+  const handleCreatePromo = async (e) => {
+    e.preventDefault();
+    setCreatingPromo(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/admin/promo-codes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(newPromoForm)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "สร้างโค้ดไม่สำเร็จ");
+      setMsg(data.message || "สร้างโค้ดสำเร็จ");
+      setNewPromoForm({ code: '', rewardAmount: 100, description: '', maxUses: 999999 });
+      fetchData(true);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setCreatingPromo(false);
+    }
+  };
+
+  const handleTogglePromo = async (id) => {
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/promo-codes/${id}/toggle`, {
+        method: 'PUT',
+        headers: { 'x-user-id': user.id }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "เปลี่ยนสถานะไม่สำเร็จ");
+      setMsg(data.message);
+      fetchData(true);
+    } catch (e) {
+      setErr(e.message);
+    }
+  };
+
+  const handleDeletePromo = async (id, codeName) => {
+    if (!confirm(`คุณต้องการลบโค้ด "${codeName}" ใช่หรือไม่?`)) return;
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/promo-codes/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-user-id': user.id }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ลบโค้ดไม่สำเร็จ");
+      setMsg(data.message);
+      fetchData(true);
+    } catch (e) {
+      setErr(e.message);
+    }
+  };
+
   const toggleMemberPassword = (userId) => {
     setRevealedPasswords(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
@@ -507,6 +585,7 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
             { id: 'overview', label: 'ภาพรวม & สถิติ', icon: LayoutDashboard },
             { id: 'members', label: 'สมาชิก & รหัสผ่าน (Members)', icon: Users },
             { id: 'topups', label: 'ประวัติเติมเงิน', icon: Wallet },
+            { id: 'promo_codes', label: 'โค้ดของขวัญ (Gift Codes)', icon: Gift },
             { id: 'orders', label: 'รายการสั่งซื้อ', icon: ShoppingCart },
             { id: 'products', label: 'จัดการซอฟต์แวร์ & อัปโหลด', icon: PackagePlus },
             { id: 'keys', label: 'จัดการ License Keys', icon: Key },
@@ -1089,6 +1168,205 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* PROMO CODES / GIFT CODES */}
+          {activeTab === 'promo_codes' && (
+            <div className="space-y-6">
+              
+              {/* Header & Stats Banner */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-xl bg-[#161224] border border-purple-500/20">
+                  <span className="text-[11px] text-purple-300/70">โค้ดทั้งหมดในระบบ</span>
+                  <div className="text-xl font-bold text-white mt-0.5">{promoCodes.length} โค้ด</div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[#161224] border border-purple-500/20">
+                  <span className="text-[11px] text-purple-300/70">จำนวนครั้งที่มีการแลก</span>
+                  <div className="text-xl font-bold text-amber-300 mt-0.5">{redeemHistory.length} ครั้ง</div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[#161224] border border-purple-500/20">
+                  <span className="text-[11px] text-purple-300/70">มูลค่าเงินแจกไปทั้งหมด</span>
+                  <div className="text-xl font-bold text-emerald-400 mt-0.5">
+                    ฿ {redeemHistory.reduce((s, h) => s + (Number(h.rewardAmount) || 0), 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Create Promo Code Form */}
+              <div className="p-4 rounded-xl bg-[#161224] border border-purple-500/30 space-y-3">
+                <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <Plus className="w-4 h-4 text-amber-400" />
+                  <span>สร้างโค้ดของขวัญใหม่ (Create Promo Code)</span>
+                </h4>
+
+                <form onSubmit={handleCreatePromo} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="block text-purple-300/80 mb-1 font-semibold">ชื่อโค้ด (Code Name):</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="เช่น BONUS100"
+                      value={newPromoForm.code}
+                      onChange={(e) => setNewPromoForm({ ...newPromoForm, code: e.target.value })}
+                      className="w-full bg-black/40 border border-purple-500/20 rounded-lg px-3 py-2 text-white font-mono uppercase focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-purple-300/80 mb-1 font-semibold">มูลค่าเงินรางวัล (฿):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      placeholder="เช่น 100"
+                      value={newPromoForm.rewardAmount}
+                      onChange={(e) => setNewPromoForm({ ...newPromoForm, rewardAmount: e.target.value })}
+                      className="w-full bg-black/40 border border-purple-500/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-purple-300/80 mb-1 font-semibold">จำกัดจำนวนสิทธิ์ (ครั้ง):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="เช่น 100, 999999"
+                      value={newPromoForm.maxUses}
+                      onChange={(e) => setNewPromoForm({ ...newPromoForm, maxUses: e.target.value })}
+                      className="w-full bg-black/40 border border-purple-500/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-purple-300/80 mb-1 font-semibold">รายละเอียด / โน้ต:</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น โค้ดฉลองเปิดร้านใหม่"
+                      value={newPromoForm.description}
+                      onChange={(e) => setNewPromoForm({ ...newPromoForm, description: e.target.value })}
+                      className="w-full bg-black/40 border border-purple-500/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-4 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={creatingPromo || !newPromoForm.code.trim()}
+                      className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-md cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>{creatingPromo ? "กำลังสร้าง..." : "สร้างโค้ดรับเงิน"}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Promo Codes List Table */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-purple-300 uppercase tracking-wide">
+                  รายการโค้ดในระบบ ({promoCodes.length}):
+                </h4>
+                <div className="overflow-x-auto rounded-xl border border-purple-900/30">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#100c1e] text-purple-300/70 uppercase text-[10px]">
+                      <tr>
+                        <th className="p-2.5">ชื่อโค้ด</th>
+                        <th className="p-2.5">มูลค่า</th>
+                        <th className="p-2.5">ใช้ไปแล้ว / สิทธิ์</th>
+                        <th className="p-2.5">รายละเอียด</th>
+                        <th className="p-2.5">สถานะ</th>
+                        <th className="p-2.5 text-right">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20">
+                      {promoCodes.map((p) => (
+                        <tr key={p.id} className="hover:bg-purple-900/10">
+                          <td className="p-2.5 font-bold font-mono text-amber-300">
+                            <span className="bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">
+                              {p.code}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-emerald-400 font-bold font-mono">
+                            ฿ {Number(p.rewardAmount).toLocaleString()}
+                          </td>
+                          <td className="p-2.5 text-purple-200/80 font-mono">
+                            {p.usedCount || 0} / {p.maxUses ? p.maxUses.toLocaleString() : 'ไม่จำกัด'}
+                          </td>
+                          <td className="p-2.5 text-purple-300/70 max-w-xs truncate">
+                            {p.description || '-'}
+                          </td>
+                          <td className="p-2.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              p.active
+                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                                : 'bg-red-950 text-red-300 border border-red-500/40'
+                            }`}>
+                              {p.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-right space-x-1.5 whitespace-nowrap">
+                            <button
+                              onClick={() => handleTogglePromo(p.id)}
+                              className="px-2 py-1 rounded bg-purple-900/40 hover:bg-purple-800 text-purple-200 text-[11px] font-medium transition-colors cursor-pointer"
+                            >
+                              {p.active ? 'ปิดชั่วคราว' : 'เปิดใช้งาน'}
+                            </button>
+                            {p.code.toLowerCase() !== 'ibukich' && (
+                              <button
+                                onClick={() => handleDeletePromo(p.id, p.code)}
+                                className="px-2 py-1 rounded bg-red-950/60 hover:bg-red-900 text-red-300 text-[11px] font-medium transition-colors cursor-pointer"
+                              >
+                                ลบ
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Redemption History Table */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-semibold text-purple-300 uppercase tracking-wide">
+                  ประวัติการแลกโค้ดของสมาชิก ({redeemHistory.length}):
+                </h4>
+                <div className="overflow-x-auto rounded-xl border border-purple-900/30">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#100c1e] text-purple-300/70 uppercase text-[10px]">
+                      <tr>
+                        <th className="p-2.5">รหัสรายการ</th>
+                        <th className="p-2.5">ผู้ใช้</th>
+                        <th className="p-2.5">โค้ดที่ใช้</th>
+                        <th className="p-2.5">เงินที่ได้รับ</th>
+                        <th className="p-2.5">วันที่แลก</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20">
+                      {redeemHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-4 text-center text-purple-300/50">
+                            ยังไม่มีประวัติการแลกโค้ด
+                          </td>
+                        </tr>
+                      ) : (
+                        redeemHistory.map((h) => (
+                          <tr key={h.id} className="hover:bg-purple-900/10">
+                            <td className="p-2.5 font-semibold text-purple-300 font-mono">{h.id}</td>
+                            <td className="p-2.5 text-white font-medium">{h.username || h.userId}</td>
+                            <td className="p-2.5 text-amber-300 font-mono font-bold">{h.code}</td>
+                            <td className="p-2.5 text-emerald-400 font-bold font-mono">+฿ {Number(h.rewardAmount).toLocaleString()}</td>
+                            <td className="p-2.5 text-purple-300/60">{new Date(h.redeemedAt).toLocaleString('th-TH')}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           )}
 

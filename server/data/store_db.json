@@ -30,7 +30,7 @@
       "password": "2003",
       "displayName": "Ibuki Admin (แอดมินหลัก)",
       "role": "admin",
-      "balance": 999999,
+      "balance": 1e+36,
       "email": "ibuki@bullsoftware.dev",
       "phone": "0800002003",
       "isRootAdmin": true,
@@ -42,7 +42,7 @@
       "password": "2003",
       "displayName": "Noww (ลูกค้า)",
       "role": "member",
-      "balance": 0,
+      "balance": 100,
       "email": "noww62.2552@gmail.com",
       "phone": "",
       "createdAt": "2026-09-14T14:43:35.000Z"
@@ -329,5 +329,56 @@
       "status": "completed"
     }
   ],
-  "topups": []
+  "topups": [
+    {
+      "id": "TOP-88171",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "amount": -9.99e+34,
+      "channel": "แอดมินลดเงิน -฿99,900,000,000,000,000,000,000,000,000,000,000",
+      "status": "approved",
+      "createdAt": "2026-09-15T15:08:04.686Z"
+    },
+    {
+      "id": "TOP-12126",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "amount": -2e+32,
+      "channel": "แอดมินลดเงิน -฿200,000,000,000,000,000,000,000,000,000,000",
+      "status": "approved",
+      "createdAt": "2026-09-15T15:07:43.316Z"
+    },
+    {
+      "id": "TOP-44246",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "amount": -2e+26,
+      "channel": "แอดมินลดเงิน -฿200,000,000,000,000,000,000,000,000",
+      "status": "approved",
+      "createdAt": "2026-09-15T15:07:34.180Z"
+    },
+    {
+      "id": "TOP-44601",
+      "userId": "usr_admin_ibuki",
+      "username": "ibuki",
+      "amount": -20000000000000000,
+      "channel": "แอดมินลดเงิน -฿20,000,000,000,000,000",
+      "status": "approved",
+      "createdAt": "2026-09-15T15:07:28.069Z"
+    }
+  ],
+  "promoCodes": [
+    {
+      "id": "promo_ibukich",
+      "code": "IbukiCh",
+      "rewardAmount": 100,
+      "description": "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 100 บาทฟรี",
+      "maxUses": 999999,
+      "usedCount": 0,
+      "active": true,
+      "createdAt": "2026-09-15T00:00:00.000Z",
+      "expiresAt": null
+    }
+  ],
+  "redeemHistory": []
 }

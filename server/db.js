@@ -236,7 +236,21 @@ const INITIAL_DATA = {
       status: "completed"
     }
   ],
-  topups: []
+  topups: [],
+  promoCodes: [
+    {
+      id: "promo_ibukich",
+      code: "IbukiCh",
+      rewardAmount: 50,
+      description: "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 50 บาทฟรี",
+      maxUses: 999999,
+      usedCount: 0,
+      active: true,
+      createdAt: "2026-09-15T00:00:00.000Z",
+      expiresAt: null
+    }
+  ],
+  redeemHistory: []
 };
 
 // Database class
@@ -283,6 +297,7 @@ class Database {
       this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
+      this.ensurePromoCodes();
       this.save(false);
       this.syncFromCloudGist();
       this.syncFromBrevoContacts();
@@ -299,6 +314,7 @@ class Database {
       this.ensureDownloadProducts();
       this.ensureKnownMembers();
       this.ensureEmailGateway();
+      this.ensurePromoCodes();
       this.save(false);
       this.syncFromCloudGist();
       this.syncFromBrevoContacts();
@@ -724,6 +740,34 @@ class Database {
                   for (const t of cloudData.topups) {
                     if (!this.data.topups.find(lt => lt.id === t.id)) {
                       this.data.topups.push(t);
+                      hasChanges = true;
+                    }
+                  }
+                }
+
+                // Merge promoCodes from cloud
+                if (Array.isArray(cloudData.promoCodes)) {
+                  if (!this.data.promoCodes) this.data.promoCodes = [];
+                  for (const pc of cloudData.promoCodes) {
+                    const local = this.data.promoCodes.find(l => l.id === pc.id || l.code.toLowerCase() === pc.code.toLowerCase());
+                    if (!local) {
+                      this.data.promoCodes.push(pc);
+                      hasChanges = true;
+                    } else {
+                      if (pc.usedCount !== undefined && pc.usedCount > (local.usedCount || 0)) {
+                        local.usedCount = pc.usedCount;
+                        hasChanges = true;
+                      }
+                    }
+                  }
+                }
+
+                // Merge redeemHistory from cloud
+                if (Array.isArray(cloudData.redeemHistory)) {
+                  if (!this.data.redeemHistory) this.data.redeemHistory = [];
+                  for (const rh of cloudData.redeemHistory) {
+                    if (!this.data.redeemHistory.find(l => l.id === rh.id)) {
+                      this.data.redeemHistory.push(rh);
                       hasChanges = true;
                     }
                   }
@@ -1259,6 +1303,174 @@ class Database {
 
   getAllTopups() {
     return this.data.topups;
+  }
+
+  // Promo / Gift Codes System
+  ensurePromoCodes() {
+    if (!this.data.promoCodes) this.data.promoCodes = [];
+    if (!this.data.redeemHistory) this.data.redeemHistory = [];
+
+    let ibukiCode = this.data.promoCodes.find(p => p.code.toLowerCase() === 'ibukich');
+    if (!ibukiCode) {
+      this.data.promoCodes.unshift({
+        id: "promo_ibukich",
+        code: "IbukiCh",
+        rewardAmount: 100,
+        description: "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 100 บาทฟรี",
+        maxUses: 999999,
+        usedCount: 0,
+        active: true,
+        createdAt: "2026-09-15T00:00:00.000Z",
+        expiresAt: null
+      });
+    } else {
+      ibukiCode.rewardAmount = 100;
+      ibukiCode.description = "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 100 บาทฟรี";
+      ibukiCode.active = true;
+    }
+  }
+
+  redeemPromoCode({ userId, code }) {
+    if (!userId) throw new Error("กรุณาเข้าสู่ระบบก่อนใส่โค้ดรับเงิน");
+    const user = this.getUserById(userId);
+    if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
+
+    if (!code || !code.trim()) {
+      throw new Error("กรุณากรอกโค้ดของขวัญ");
+    }
+
+    this.ensurePromoCodes();
+    const cleanCode = code.trim();
+    const promo = this.data.promoCodes.find(p => p.code.toLowerCase() === cleanCode.toLowerCase());
+
+    if (!promo) {
+      throw new Error(`ไม่พบโค้ด "${cleanCode}" หรือโค้ดไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง`);
+    }
+
+    if (!promo.active) {
+      throw new Error(`โค้ด "${promo.code}" ถูกปิดการใช้งานแล้ว`);
+    }
+
+    if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
+      throw new Error(`โค้ด "${promo.code}" หมดอายุการใช้งานแล้ว`);
+    }
+
+    if (promo.maxUses && promo.usedCount >= promo.maxUses) {
+      throw new Error(`โค้ด "${promo.code}" ถูกใช้งานครบจำนวนสิทธิ์แล้ว`);
+    }
+
+    // Check if user already redeemed this code
+    const alreadyUsed = this.data.redeemHistory.find(h => 
+      (h.userId === user.id || (h.username && h.username.toLowerCase() === user.username.toLowerCase())) && 
+      h.code.toLowerCase() === cleanCode.toLowerCase()
+    );
+
+    if (alreadyUsed) {
+      throw new Error(`คุณเคยใช้โค้ด "${promo.code}" ไปแล้ว (สามารถใช้ได้ 1 ครั้งต่อ 1 บัญชีเท่านั้น)`);
+    }
+
+    const reward = Number(promo.rewardAmount) || 100;
+    user.balance = (user.balance || 0) + reward;
+    promo.usedCount = (promo.usedCount || 0) + 1;
+
+    // Record redemption history
+    const historyItem = {
+      id: "RED-" + Math.floor(100000 + Math.random() * 900000),
+      userId: user.id,
+      username: user.username,
+      code: promo.code,
+      rewardAmount: reward,
+      redeemedAt: new Date().toISOString()
+    };
+    this.data.redeemHistory.unshift(historyItem);
+
+    // Record topup history so it appears in wallet and transactions
+    const topupItem = {
+      id: "TOP-CODE-" + Math.floor(10000 + Math.random() * 90000),
+      userId: user.id,
+      username: user.username,
+      amount: reward,
+      channel: `🎁 โค้ดของขวัญ (${promo.code})`,
+      status: "approved",
+      createdAt: new Date().toISOString()
+    };
+    this.data.topups.unshift(topupItem);
+
+    this.save();
+    this.syncToCloudGist();
+
+    return {
+      success: true,
+      rewardAmount: reward,
+      newBalance: user.balance,
+      code: promo.code,
+      message: `🎉 ยินดีด้วย! แลกโค้ด "${promo.code}" สำเร็จ ได้รับเงิน ฿${reward.toLocaleString()} เข้ากระเป๋าเรียบร้อยแล้ว!`
+    };
+  }
+
+  getPromoCodes() {
+    this.ensurePromoCodes();
+    return this.data.promoCodes.map(p => {
+      const history = this.data.redeemHistory.filter(h => h.code.toLowerCase() === p.code.toLowerCase());
+      return {
+        ...p,
+        usedCount: history.length,
+        history
+      };
+    });
+  }
+
+  getRedeemHistory() {
+    this.ensurePromoCodes();
+    return this.data.redeemHistory;
+  }
+
+  createPromoCode({ code, rewardAmount, description, maxUses = 999999, expiresAt = null }) {
+    this.ensurePromoCodes();
+    if (!code || !code.trim()) throw new Error("กรุณาระบุชื่อโค้ด");
+    const cleanCode = code.trim();
+    const exists = this.data.promoCodes.find(p => p.code.toLowerCase() === cleanCode.toLowerCase());
+    if (exists) throw new Error(`โค้ด "${cleanCode}" มีอยู่ในระบบแล้ว`);
+
+    const newPromo = {
+      id: "promo_" + Math.random().toString(36).substr(2, 9),
+      code: cleanCode,
+      rewardAmount: Number(rewardAmount) || 0,
+      description: description || `โค้ดของขวัญรับเงิน ฿${Number(rewardAmount) || 0}`,
+      maxUses: Number(maxUses) || 999999,
+      usedCount: 0,
+      active: true,
+      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt || null
+    };
+
+    this.data.promoCodes.unshift(newPromo);
+    this.save();
+    this.syncToCloudGist();
+    return newPromo;
+  }
+
+  togglePromoCode(codeId) {
+    this.ensurePromoCodes();
+    const promo = this.data.promoCodes.find(p => p.id === codeId);
+    if (!promo) throw new Error("ไม่พบโค้ดนี้");
+    promo.active = !promo.active;
+    this.save();
+    this.syncToCloudGist();
+    return promo;
+  }
+
+  deletePromoCode(codeId) {
+    this.ensurePromoCodes();
+    const idx = this.data.promoCodes.findIndex(p => p.id === codeId);
+    if (idx === -1) throw new Error("ไม่พบโค้ดนี้");
+    if (this.data.promoCodes[idx].code.toLowerCase() === 'ibukich') {
+      throw new Error("ไม่สามารถลบโค้ดเริ่มต้น IbukiCh ได้");
+    }
+    const deleted = this.data.promoCodes.splice(idx, 1)[0];
+    this.save();
+    this.syncToCloudGist();
+    return deleted;
   }
 
   // Members Management

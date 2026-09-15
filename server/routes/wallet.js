@@ -248,4 +248,29 @@ router.post('/topup', (req, res) => {
   }
 });
 
+// 4. Redeem Gift / Promo Code (e.g. "IbukiCh" -> +฿50)
+router.post('/redeem-code', (req, res) => {
+  try {
+    const { code } = req.body;
+    const userId = req.headers['x-user-id'];
+
+    if (!userId) {
+      return res.status(401).json({ error: "กรุณาเข้าสู่ระบบก่อนใส่โค้ดรับเงิน" });
+    }
+
+    if (!code || !code.trim()) {
+      return res.status(400).json({ error: "กรุณากรอกโค้ดของขวัญ" });
+    }
+
+    const result = db.redeemPromoCode({
+      userId,
+      code: code.trim()
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 export default router;

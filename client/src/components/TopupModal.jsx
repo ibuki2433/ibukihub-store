@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, QrCode, Gift, CheckCircle2, AlertCircle, Wallet, ShieldCheck } from 'lucide-react';
+import { X, QrCode, Gift, CheckCircle2, AlertCircle, Wallet, ShieldCheck, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,10 +7,11 @@ const QUICK_AMOUNTS = [50, 100, 150, 300, 500, 1000];
 
 export default function TopupModal({ onClose, onOpenAuth }) {
   const { user, updateBalance } = useAuth();
-  const [tab, setTab] = useState('promptpay'); // promptpay, truemoney
+  const [tab, setTab] = useState('promptpay'); // promptpay, truemoney, giftcode
   const [amount, setAmount] = useState(150);
   const [customAmount, setCustomAmount] = useState('');
   const [voucherUrl, setVoucherUrl] = useState('');
+  const [giftCode, setGiftCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [error, setError] = useState(null);
@@ -29,6 +30,30 @@ export default function TopupModal({ onClose, onOpenAuth }) {
     setSuccessMsg(null);
 
     try {
+      if (tab === 'giftcode') {
+        if (!giftCode || !giftCode.trim()) {
+          throw new Error("กรุณากรอกโค้ดของขวัญ");
+        }
+        const res = await fetch('/api/wallet/redeem-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': user.id
+          },
+          body: JSON.stringify({ code: giftCode.trim() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "การแลกโค้ดไม่สำเร็จ");
+
+        updateBalance(data.newBalance);
+        setSuccessMsg(data.message || `🎉 แลกโค้ดสำเร็จ ได้รับเงิน ฿${data.rewardAmount.toLocaleString()} เข้ากระเป๋าเรียบร้อยแล้ว`);
+        setGiftCode('');
+        try {
+          confetti({ particleCount: 80, spread: 60 });
+        } catch (e) {}
+        return;
+      }
+
       let payload = {};
       if (tab === 'promptpay') {
         if (!selectedAmount || selectedAmount <= 0) {
@@ -108,26 +133,38 @@ export default function TopupModal({ onClose, onOpenAuth }) {
         <div className="flex border-b border-purple-900/20 bg-[#120e1e]">
           <button
             onClick={() => { setTab('promptpay'); setError(null); setSuccessMsg(null); }}
-            className={`flex-1 py-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-all ${
+            className={`flex-1 py-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all ${
               tab === 'promptpay'
                 ? 'border-purple-400 text-purple-200 bg-purple-900/20 font-semibold'
                 : 'border-transparent text-purple-300/60 hover:text-white'
             }`}
           >
             <QrCode className="w-3.5 h-3.5" />
-            <span>พร้อมเพย์ QR (PromptPay)</span>
+            <span>พร้อมเพย์ QR</span>
           </button>
 
           <button
             onClick={() => { setTab('truemoney'); setError(null); setSuccessMsg(null); }}
-            className={`flex-1 py-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-all ${
+            className={`flex-1 py-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all ${
               tab === 'truemoney'
                 ? 'border-purple-400 text-purple-200 bg-purple-900/20 font-semibold'
                 : 'border-transparent text-purple-300/60 hover:text-white'
             }`}
           >
             <Gift className="w-3.5 h-3.5" />
-            <span>ซองของขวัญทรูมันนี่</span>
+            <span>ซองทรูมันนี่</span>
+          </button>
+
+          <button
+            onClick={() => { setTab('giftcode'); setError(null); setSuccessMsg(null); }}
+            className={`flex-1 py-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all ${
+              tab === 'giftcode'
+                ? 'border-amber-400 text-amber-200 bg-amber-950/30 font-semibold'
+                : 'border-transparent text-purple-300/60 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>โค้ดของขวัญ</span>
           </button>
         </div>
 
@@ -230,7 +267,7 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                     <span>{loading ? "กำลังตรวจสอบยอดเงิน..." : "ยืนยันการโอนเงิน (รับเครดิตทันที)"}</span>
                   </button>
                 </>
-              ) : (
+              ) : tab === 'truemoney' ? (
                 /* TRUEMONEY TAB */
                 <>
                   <div className="p-3.5 rounded-xl bg-[#19142b] border border-purple-500/20 text-xs text-purple-200/80 space-y-1.5">
@@ -262,6 +299,48 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                   >
                     <Gift className="w-4 h-4" />
                     <span>{loading ? "กำลังตรวจสอบ..." : "ยืนยันและรับเครดิต"}</span>
+                  </button>
+                </>
+              ) : (
+                /* GIFT CODE TAB */
+                <>
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/40 to-amber-950/40 border border-amber-500/30 text-xs text-amber-200/90 space-y-2">
+                    <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span>โค้ดของขวัญต้อนรับสมาชิกใหม่!</span>
+                    </div>
+                    <div className="text-[11px] text-purple-200/80 flex items-center justify-between">
+                      <span>ใส่โค้ด <strong>IbukiCh</strong> รับ 100 บาทฟรี:</span>
+                      <button
+                        type="button"
+                        onClick={() => setGiftCode('IbukiCh')}
+                        className="px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[10px] transition-colors"
+                      >
+                        ใส่โค้ด IbukiCh
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-purple-300 mb-1.5">
+                      กรอกโค้ดของขวัญ (Promo Code):
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="เช่น IbukiCh"
+                      value={giftCode}
+                      onChange={(e) => setGiftCode(e.target.value)}
+                      className="w-full bg-[#181328] border border-amber-500/30 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-amber-200 font-mono font-bold uppercase focus:outline-none focus:border-amber-400/60"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !giftCode.trim()}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-neutral-950 font-extrabold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <Gift className="w-4 h-4 text-neutral-950" />
+                    <span>{loading ? "กำลังตรวจสอบ..." : "แลกรับเงินฟรีเข้ากระเป๋า"}</span>
                   </button>
                 </>
               )}
