@@ -8,7 +8,7 @@
     "stats": {
       "itemsAvailable": 3,
       "totalSalesBath": 14544,
-      "totalMembers": 100,
+      "totalMembers": 1,
       "totalSold": 76
     },
     "emailGateway": {
@@ -35,39 +35,6 @@
       "phone": "0800002003",
       "isRootAdmin": true,
       "createdAt": "2026-09-14T08:09:26.910Z"
-    },
-    {
-      "id": "usr_noww62",
-      "username": "noww62",
-      "password": "2003",
-      "displayName": "Noww (ลูกค้า)",
-      "role": "member",
-      "balance": 100,
-      "email": "noww62.2552@gmail.com",
-      "phone": "",
-      "createdAt": "2026-09-14T14:43:35.000Z"
-    },
-    {
-      "id": "usr_gqkpm1234",
-      "username": "gqkpm1234",
-      "password": "2003",
-      "displayName": "gqkpm1234 (ลูกค้า)",
-      "role": "member",
-      "balance": 0,
-      "email": "gqkpm1234@gmail.com",
-      "phone": "",
-      "createdAt": "2026-09-14T15:30:54.000Z"
-    },
-    {
-      "id": "usr_gqkpm2003",
-      "username": "gqkpm2003",
-      "password": "2003",
-      "displayName": "gqkpm2003",
-      "role": "member",
-      "balance": 0,
-      "email": "gqkpm2003@gmail.com",
-      "phone": "",
-      "createdAt": "2026-09-14T15:27:20.000Z"
     }
   ],
   "categories": [
@@ -244,52 +211,6 @@
   ],
   "licenseKeys": {},
   "orders": [
-    {
-      "id": "ORD-928155",
-      "userId": "usr_noww62",
-      "username": "noww62",
-      "productId": "prod_ibuki_25",
-      "productName": "IbukiDownload V.2.5",
-      "planId": null,
-      "planName": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
-      "planCode": "VIP",
-      "durationDays": 99999,
-      "isLifetime": true,
-      "expiresAt": "LIFETIME",
-      "price": 190,
-      "licenseKey": null,
-      "machineId": null,
-      "licenseStatus": "active",
-      "source": "web_store",
-      "fileName": "IbukiDownload_v2.5_Portable.zip",
-      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
-      "fileSize": "196 MB",
-      "createdAt": "2026-09-14T14:45:00.000Z",
-      "status": "completed"
-    },
-    {
-      "id": "ORD-928122",
-      "userId": "usr_noww62",
-      "username": "noww62",
-      "productId": "prod_ibuki_22",
-      "productName": "IbukiDownload V.2.2",
-      "planId": null,
-      "planName": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
-      "planCode": "VIP",
-      "durationDays": 99999,
-      "isLifetime": true,
-      "expiresAt": "LIFETIME",
-      "price": 150,
-      "licenseKey": null,
-      "machineId": null,
-      "licenseStatus": "active",
-      "source": "web_store",
-      "fileName": "IbukiDownload_v2.2_Portable.zip",
-      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
-      "fileSize": "98.9 MB",
-      "createdAt": "2026-09-14T14:44:00.000Z",
-      "status": "completed"
-    },
     {
       "id": "ORD-806338",
       "userId": "usr_admin_ibuki",

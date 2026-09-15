@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { mysqlDb } from './mysql_db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +19,7 @@ const INITIAL_DATA = {
     stats: {
       itemsAvailable: 3,
       totalSalesBath: 11150, // 30 orders of V2.2 (30*150=4500) + 35 orders of V2.5 (35*190=6650) = 11,150
-      totalMembers: 100,
+      totalMembers: 1,
       totalSold: 65
     },
     emailGateway: {
@@ -43,40 +44,8 @@ const INITIAL_DATA = {
       balance: 999999,
       email: "ibuki@bullsoftware.dev",
       phone: "0800002003",
+      isRootAdmin: true,
       createdAt: new Date().toISOString()
-    },
-    {
-      id: "usr_noww62",
-      username: "noww62",
-      password: "2003",
-      displayName: "Noww (ลูกค้า)",
-      role: "member",
-      balance: 0,
-      email: "noww62.2552@gmail.com",
-      phone: "",
-      createdAt: "2026-09-14T14:43:35.000Z"
-    },
-    {
-      id: "usr_gqkpm1234",
-      username: "gqkpm1234",
-      password: "2003",
-      displayName: "gqkpm1234 (ลูกค้า)",
-      role: "member",
-      balance: 0,
-      email: "gqkpm1234@gmail.com",
-      phone: "",
-      createdAt: "2026-09-14T15:30:54.000Z"
-    },
-    {
-      id: "usr_gqkpm2003",
-      username: "gqkpm2003",
-      password: "2003",
-      displayName: "gqkpm2003",
-      role: "member",
-      balance: 0,
-      email: "gqkpm2003@gmail.com",
-      phone: "",
-      createdAt: "2026-09-14T15:27:20.000Z"
     }
   ],
   categories: [
@@ -188,54 +157,7 @@ const INITIAL_DATA = {
     }
   ],
   licenseKeys: {},
-  orders: [
-    {
-      id: "ORD-928155",
-      userId: "usr_noww62",
-      username: "noww62",
-      productId: "prod_ibuki_25",
-      productName: "IbukiDownload V.2.5",
-      planId: null,
-      planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
-      planCode: "VIP",
-      durationDays: 99999,
-      isLifetime: true,
-      expiresAt: "LIFETIME",
-      price: 190,
-      licenseKey: null,
-      machineId: null,
-      licenseStatus: "active",
-      source: "web_store",
-      fileName: "IbukiDownload_v2.5_Portable.zip",
-      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
-      fileSize: "196 MB",
-      createdAt: "2026-09-14T14:45:00.000Z",
-      status: "completed"
-    },
-    {
-      id: "ORD-928122",
-      userId: "usr_noww62",
-      username: "noww62",
-      productId: "prod_ibuki_22",
-      productName: "IbukiDownload V.2.2",
-      planId: null,
-      planName: "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
-      planCode: "VIP",
-      durationDays: 99999,
-      isLifetime: true,
-      expiresAt: "LIFETIME",
-      price: 150,
-      licenseKey: null,
-      machineId: null,
-      licenseStatus: "active",
-      source: "web_store",
-      fileName: "IbukiDownload_v2.2_Portable.zip",
-      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip",
-      fileSize: "98.9 MB",
-      createdAt: "2026-09-14T14:44:00.000Z",
-      status: "completed"
-    }
-  ],
+  orders: [],
   topups: [],
   promoCodes: [
     {
@@ -268,39 +190,28 @@ class Database {
       } else {
         this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
       }
-      // Purge leftover demo/test accounts, demo orders, and demo topups
+      // Purge all previously registered customer accounts except main Admin ID
       if (this.data.users) {
         this.data.users = this.data.users.filter(u => 
-          u.username !== 'admin' && 
-          u.username !== 'user1' && 
-          !u.username.startsWith('tester_')
-        );
-      }
-      if (this.data.topups) {
-        this.data.topups = this.data.topups.filter(t => 
-          t.username !== 'user1' && 
-          !t.username?.startsWith('tester_') &&
-          t.id !== 'TOP-83910' && 
-          t.id !== 'TOP-83911'
+          u.id === 'usr_admin_ibuki' || u.username === 'ibuki' || u.isRootAdmin || u.role === 'admin'
         );
       }
       if (this.data.orders) {
         this.data.orders = this.data.orders.filter(o => 
-          o.username !== 'user1' && 
-          !o.username?.startsWith('tester_') &&
-          o.id !== 'ORD-928104' && 
-          o.id !== 'ORD-928105'
+          o.userId === 'usr_admin_ibuki' || o.username === 'ibuki'
         );
+      }
+      if (this.data.settings?.stats) {
+        this.data.settings.stats.totalMembers = this.data.users ? this.data.users.length : 1;
       }
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
       this.ensureDownloadProducts();
-      this.ensureKnownMembers();
       this.ensureEmailGateway();
       this.ensurePromoCodes();
       this.save(false);
+      this.initMySQL();
       this.syncFromCloudGist();
-      this.syncFromBrevoContacts();
 
       // Recurring real-time sync with GitHub Cloud Gist every 30 seconds
       setInterval(() => {
@@ -312,16 +223,38 @@ class Database {
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
       this.ensureDownloadProducts();
-      this.ensureKnownMembers();
       this.ensureEmailGateway();
       this.ensurePromoCodes();
       this.save(false);
+      this.initMySQL();
       this.syncFromCloudGist();
-      this.syncFromBrevoContacts();
 
       setInterval(() => {
         this.syncFromCloudGist();
       }, 30000);
+    }
+  }
+
+  async initMySQL() {
+    try {
+      const connected = await mysqlDb.connect();
+      if (connected) {
+        const admin = this.data.users.find(u => u.role === 'admin');
+        if (admin) {
+          await mysqlDb.resetUsersToAdminOnly(admin);
+          await mysqlDb.resetOrdersToAdminOnly(admin.id);
+        }
+        if (this.data.products) {
+          await mysqlDb.syncProducts(this.data.products);
+        }
+        if (this.data.promoCodes) {
+          for (const pc of this.data.promoCodes) {
+            await mysqlDb.upsertPromoCode(pc);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[MySQL] Init hook warning:', e.message);
     }
   }
 
@@ -795,50 +728,8 @@ class Database {
   }
 
   async syncFromBrevoContacts() {
-    try {
-      const apiKey = process.env.BREVO_API_KEY || this.data.settings?.emailGateway?.brevoApiKey;
-      if (!apiKey) return;
-      const https = await import('https');
-      const req = https.default.request('https://api.brevo.com/v3/contacts?limit=50', {
-        method: 'GET',
-        headers: { 'api-key': apiKey, 'Accept': 'application/json' }
-      }, res => {
-        let body = '';
-        res.on('data', c => body += c);
-        res.on('end', () => {
-          try {
-            const data = JSON.parse(body);
-            if (data && Array.isArray(data.contacts)) {
-              let updated = false;
-              for (const c of data.contacts) {
-                if (!c.email) continue;
-                const cleanEmail = c.email.toLowerCase();
-                if (cleanEmail === 'gqkpm2003@gmail.com' || cleanEmail === 'ibuki@bullsoftware.dev') continue;
-                const exists = this.data.users.find(u => u.email && u.email.toLowerCase() === cleanEmail);
-                if (!exists) {
-                  const uname = (c.attributes && c.attributes.FIRSTNAME) || cleanEmail.split('@')[0];
-                  this.data.users.push({
-                    id: 'usr_' + Math.random().toString(36).substr(2, 9),
-                    username: uname,
-                    displayName: uname,
-                    email: cleanEmail,
-                    phone: (c.attributes && c.attributes.SMS) || '',
-                    password: '2003',
-                    role: 'member',
-                    balance: 0,
-                    createdAt: c.createdAt || new Date().toISOString()
-                  });
-                  updated = true;
-                }
-              }
-              if (updated) this.save();
-            }
-          } catch (e) {}
-        });
-      });
-      req.on('error', () => {});
-      req.end();
-    } catch (e) {}
+    // Disabled to prevent resurrecting deleted members
+    return;
   }
 
   async syncUserToBrevo(user) {
@@ -961,6 +852,7 @@ class Database {
     this.data.settings.stats.totalMembers += 1;
     this.save();
     this.syncUserToBrevo(newUser);
+    try { mysqlDb.upsertUser(newUser); } catch(e) {}
     return newUser;
   }
 
@@ -969,6 +861,7 @@ class Database {
     if (!user) throw new Error("ไม่พบชื่อผู้ใช้ อีเมล หรือเบอร์โทรศัพท์นี้ในระบบ");
     user.password = newPassword;
     this.save();
+    try { mysqlDb.upsertUser(user); } catch(e) {}
     return user;
   }
 
@@ -977,6 +870,7 @@ class Database {
     if (!user) throw new Error("ไม่พบผู้ใช้งาน");
     user.balance = Math.max(0, (user.balance || 0) + amountToAdd);
     this.save();
+    try { mysqlDb.updateUserBalance(userId, user.balance); } catch(e) {}
     return user;
   }
 
@@ -1204,6 +1098,8 @@ class Database {
 
     this.data.orders.unshift(order);
     this.save();
+    try { mysqlDb.createOrder(order); } catch(e) {}
+    try { mysqlDb.updateUserBalance(user.id, user.balance); } catch(e) {}
 
     return { order, remainingBalance: user.balance };
   }
@@ -1297,6 +1193,8 @@ class Database {
     user.balance = (user.balance || 0) + Number(amount);
     this.data.topups.unshift(topup);
     this.save();
+    try { mysqlDb.createTopup(topup); } catch(e) {}
+    try { mysqlDb.updateUserBalance(user.id, user.balance); } catch(e) {}
 
     return { topup, newBalance: user.balance };
   }
@@ -1397,6 +1295,11 @@ class Database {
     this.data.topups.unshift(topupItem);
 
     this.save();
+    try {
+      mysqlDb.recordRedeem(historyItem);
+      mysqlDb.createTopup(topupItem);
+      mysqlDb.updateUserBalance(user.id, user.balance);
+    } catch(e) {}
     this.syncToCloudGist();
 
     return {
