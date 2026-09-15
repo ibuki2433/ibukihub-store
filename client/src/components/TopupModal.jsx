@@ -304,30 +304,13 @@ export default function TopupModal({ onClose, onOpenAuth }) {
               ) : (
                 /* GIFT CODE TAB */
                 <>
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/40 to-amber-950/40 border border-amber-500/30 text-xs text-amber-200/90 space-y-2">
-                    <div className="font-bold text-amber-300 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>โค้ดของขวัญต้อนรับสมาชิกใหม่!</span>
-                    </div>
-                    <div className="text-[11px] text-purple-200/80 flex items-center justify-between">
-                      <span>ใส่โค้ด <strong>IbukiCh</strong> รับ 100 บาทฟรี:</span>
-                      <button
-                        type="button"
-                        onClick={() => setGiftCode('IbukiCh')}
-                        className="px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[10px] transition-colors"
-                      >
-                        ใส่โค้ด IbukiCh
-                      </button>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-xs font-semibold text-purple-300 mb-1.5">
                       กรอกโค้ดของขวัญ (Promo Code):
                     </label>
                     <input
                       type="text"
-                      placeholder="เช่น IbukiCh"
+                      placeholder="กรอกโค้ดของขวัญที่นี่..."
                       value={giftCode}
                       onChange={(e) => setGiftCode(e.target.value)}
                       className="w-full bg-[#181328] border border-amber-500/30 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-amber-200 font-mono font-bold uppercase focus:outline-none focus:border-amber-400/60"

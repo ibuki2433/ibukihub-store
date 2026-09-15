@@ -268,7 +268,7 @@ export default function Navbar({
             <button
               onClick={onOpenRedeem}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-neutral-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
-              title="ใส่โค้ดรับเงินฟรี (เช่น IbukiCh รับ ฿50)"
+              title="ใส่โค้ดรับเงินฟรี"
             >
               <Gift className="w-3.5 h-3.5 text-neutral-950 shrink-0" />
               <span>ใส่โค้ด</span>

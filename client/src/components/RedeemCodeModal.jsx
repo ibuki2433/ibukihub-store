@@ -21,7 +21,7 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
     }
 
     if (!code || !code.trim()) {
-      setError("กรุณากรอกโค้ดของขวัญ เช่น IbukiCh");
+      setError("กรุณากรอกโค้ดของขวัญ");
       return;
     }
 
@@ -62,11 +62,6 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleApplyPreset = (presetCode) => {
-    setCode(presetCode);
-    setError(null);
   };
 
   return (
@@ -122,7 +117,7 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
               <div className="p-3 rounded-xl bg-black/60 border border-emerald-500/30 space-y-1 text-xs">
                 <div className="flex justify-between text-purple-200/80">
                   <span>โค้ดที่ใช้:</span>
-                  <span className="font-mono font-bold text-amber-300">{successData.code || "IbukiCh"}</span>
+                  <span className="font-mono font-bold text-amber-300">{successData.code || "โค้ดของขวัญ"}</span>
                 </div>
                 <div className="flex justify-between text-purple-200/80">
                   <span>ยอดเงินที่ได้รับ:</span>
@@ -171,31 +166,6 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
           ) : !successData && (
             /* REDEEM FORM */
             <form onSubmit={handleSubmit} className="space-y-4">
-              
-              {/* RECOMMENDED CODE CARD */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/60 to-purple-950/60 border border-amber-500/40 flex items-center justify-between gap-3">
-                <div className="space-y-0.5 text-left">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md bg-amber-500 text-neutral-950 text-[10px] font-black uppercase tracking-wider">
-                      โค้ดแรก
-                    </span>
-                    <span className="font-mono font-black text-amber-300 text-sm sm:text-base">
-                      IbukiCh
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-purple-200/80">
-                    รับฟรี <span className="text-emerald-400 font-bold">50 บาท</span> สำหรับสมาชิก
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleApplyPreset('IbukiCh')}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95"
-                >
-                  ใช้โค้ดนี้
-                </button>
-              </div>
-
               {/* CODE INPUT */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-purple-200">
@@ -209,7 +179,7 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
                       setCode(e.target.value);
                       setError(null);
                     }}
-                    placeholder="เช่น IbukiCh"
+                    placeholder="กรอกโค้ดโปรโมชั่นที่นี่..."
                     className="w-full bg-black/60 border-2 border-purple-500/30 focus:border-amber-400 rounded-2xl px-4 py-3 text-sm text-white font-mono placeholder-purple-400/30 focus:outline-none transition-all pr-10 tracking-wide"
                     autoFocus
                   />
@@ -245,7 +215,7 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-neutral-950" />
-                    <span>แลกรับเงิน ฿50 ทันที</span>
+                    <span>ยืนยันแลกรับเงิน</span>
                     <ArrowRight className="w-4 h-4 text-neutral-950" />
                   </>
                 )}

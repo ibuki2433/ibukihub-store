@@ -220,11 +220,9 @@ function StoreMain() {
         <button
           onClick={() => setIsRedeemOpen(true)}
           className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-orange-500/25 to-amber-500/25 hover:from-amber-500/40 hover:to-orange-500/40 border border-amber-400/50 text-amber-300 hover:text-white text-[11px] font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95 cursor-pointer"
-          title="คลิกเพื่อใส่โค้ดรับเงิน 50 บาทฟรี"
+          title="คลิกเพื่อใส่โค้ดรับเงินฟรี"
         >
-          <span>🎁 โค้ดฟรี:</span>
-          <span className="font-mono underline text-amber-200">IbukiCh</span>
-          <span className="text-emerald-400 font-extrabold">+฿50</span>
+          <span>🎁 ใส่โค้ดรับเงินฟรี</span>
         </button>
       </div>
 

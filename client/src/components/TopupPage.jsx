@@ -838,33 +838,6 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                 </p>
               </div>
 
-              {/* Special Promotion Box for "IbukiCh" */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/50 via-purple-950/50 to-amber-950/50 border-2 border-amber-400/50 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-                <div className="flex items-center gap-3.5 text-left">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-2xl shrink-0">
-                    🎁
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-2">
-                      <span>โค้ดของขวัญพิเศษแจกฟรี!</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-extrabold border border-emerald-500/40">+ ฿100</span>
-                    </div>
-                    <div className="text-xs text-purple-200/90 mt-0.5">
-                      ใช้โค้ด <strong className="text-white font-mono bg-amber-500/20 px-2 py-0.5 rounded border border-amber-400/40 text-sm">IbukiCh</strong> ได้รับเงินในเว็บ 100 บาทฟรีทันที!
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setGiftCode('IbukiCh')}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-neutral-950 font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>คลิกเพื่อใส่โค้ด IbukiCh</span>
-                </button>
-              </div>
-
               {/* Error Message */}
               {error && (
                 <div className="p-3.5 rounded-2xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs sm:text-sm flex items-center gap-2">
@@ -883,7 +856,7 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                     <input
                       type="text"
                       required
-                      placeholder="พิมพ์โค้ด เช่น IbukiCh"
+                      placeholder="พิมพ์โค้ดของขวัญที่นี่..."
                       value={giftCode}
                       onChange={(e) => setGiftCode(e.target.value)}
                       className="w-full bg-[#1b1435] border-2 border-purple-500/40 focus:border-amber-400 text-amber-200 font-mono font-bold tracking-wider rounded-2xl px-4 py-3.5 text-base sm:text-lg focus:outline-none transition-colors shadow-inner placeholder:font-normal placeholder:tracking-normal placeholder:text-purple-300/40"
