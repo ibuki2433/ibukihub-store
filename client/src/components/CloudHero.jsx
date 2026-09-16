@@ -35,7 +35,7 @@ const DOWNLOAD_PACKAGES = [
 const AUTOPOSTER_INFO = {
   id: "prod_autoposter",
   name: "Ibuki FB AutoPoster Pro V.1.0",
-  version: "v1.0 Pro Portable",
+  version: "v1.0 Portable",
   badge: "บอทการตลาด FB",
   badgeColor: "bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-indigo-500/40",
   tagline: "บอทโพสต์กลุ่ม Facebook อัตโนมัติ",
@@ -559,7 +559,7 @@ export default function CloudHero({ onSelectProduct, onOpenQuickBuy, products = 
                 <div className="flex items-center justify-between gap-1">
                   <span className="text-[10px] font-bold text-indigo-200 flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>v1.0 Pro Portable Edition</span>
+                    <span>v1.0 Portable Edition</span>
                   </span>
                   <span className="text-[9.5px] px-2 py-0.5 rounded-full font-semibold shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">
                     {lang === 'th' ? 'บอทการตลาด FB' : 'FB Auto-Poster'}

@@ -11,6 +11,7 @@ import ordersRouter from './routes/orders.js';
 import walletRouter from './routes/wallet.js';
 import downloadRouter from './routes/download.js';
 import adminRouter from './routes/admin.js';
+import verifyRouter from './routes/verify.js';
 import { db } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +19,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Prevent server exit on transient errors
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT_EXCEPTION]', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[UNHANDLED_REJECTION]', reason);
+});
 
 // Middlewares
 app.use(cors());
@@ -42,6 +51,8 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/wallet', walletRouter);
 app.use('/api/download', downloadRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/verify', verifyRouter);
+app.use('/api/licenses/verify', verifyRouter);
 
 // Public settings & live stats
 app.get('/api/settings', (req, res) => {
