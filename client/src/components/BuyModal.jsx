@@ -163,7 +163,11 @@ export default function BuyModal({ product, initialPlanId, onClose, onOpenTopup,
                   </div>
 
                   <p className="text-[11px] text-purple-200/90 bg-purple-950/50 p-2.5 rounded-lg border border-purple-500/25 leading-relaxed">
-                    💡 <b>วิธีใช้งาน:</b> ดาวน์โหลดไฟล์โปรแกรม (.zip) ด้านล่าง แตกไฟล์แล้วเปิดโปรแกรม <b>Ibuki FB AutoPoster Pro</b> นำ License Key ด้านบนไปวางแล้วกดเปิดใช้งาน โปรแกรมจะพร้อมทำงานทันที!
+                    {purchasedOrder.fileName?.endsWith('.exe') ? (
+                      <>💡 <b>วิธีใช้งาน:</b> กดปุ่ม <b>ดาวน์โหลดไฟล์ซอฟต์แวร์</b> ด้านล่างเพื่อรับไฟล์ <b>Ibuki FB AutoPoster Pro.exe</b> เปิดโปรแกรมแล้วนำ License Key ด้านบนไปวางเพื่อเปิดใช้งานได้ทันทีโดยไม่ต้องแตกไฟล์!</>
+                    ) : (
+                      <>💡 <b>วิธีใช้งาน:</b> กดปุ่ม <b>ดาวน์โหลดไฟล์ซอฟต์แวร์</b> ด้านล่างเพื่อรับไฟล์ <b>Ibuki FB AutoPoster Pro_v1.0_Portable.zip</b> แตกไฟล์แล้วเปิดโปรแกรม <b>Ibuki FB AutoPoster Pro</b> นำ License Key ด้านบนไปวางแล้วกดเปิดใช้งาน โปรแกรมจะพร้อมทำงานทันที!</>
+                    )}
                   </p>
                 </div>
               ) : (
@@ -182,20 +186,22 @@ export default function BuyModal({ product, initialPlanId, onClose, onOpenTopup,
               <div className="p-4 rounded-xl bg-[#19142b] border border-purple-500/25 space-y-3 shadow-inner">
                 <div className="flex items-center justify-between text-xs text-purple-300/80">
                   <span>{t('buyPackageFile')}</span>
-                  <span className="font-semibold text-purple-200">{purchasedOrder.fileName}</span>
+                  <span className="font-semibold text-purple-200">{purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro.exe'}</span>
                 </div>
 
                 <a
                   href={`/api/download/${purchasedOrder.id}?userId=${user?.id}`}
-                  download={purchasedOrder.fileName}
+                  download={purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro.exe'}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(168,85,247,0.5)] transition-all transform active:scale-95"
                 >
                   <Download className="w-4 h-4" />
-                  <span>{t('buyDownloadZip')}</span>
+                  <span>ดาวน์โหลดไฟล์ซอฟต์แวร์ ({purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro.exe'})</span>
                 </a>
 
                 <p className="text-[11px] text-center text-purple-300/70">
-                  {t('buyExtractHint')}
+                  {purchasedOrder.fileName?.endsWith('.exe') || !purchasedOrder.fileName
+                    ? '✨ โปรแกรมแบบ Standalone (.exe) โหลดเสร็จแล้วดับเบิลคลิกเปิดใช้งานและกรอกคีย์ได้ทันที ไม่ต้องแตกไฟล์'
+                    : '📦 ไฟล์แบบ Portable (.zip) แตกไฟล์แล้วเปิดโฟลเดอร์รัน Ibuki FB AutoPoster Pro.exe ได้ทันที'}
                 </p>
               </div>
 
