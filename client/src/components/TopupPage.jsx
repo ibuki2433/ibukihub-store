@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, QrCode, Gift, CheckCircle2, AlertCircle, 
-  Wallet, ShieldCheck, Copy, Check, Sparkles, ExternalLink, RefreshCw
+  Wallet, ShieldCheck, Copy, Check, Sparkles, ExternalLink, RefreshCw,
+  Upload, Image as ImageIcon, X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -27,12 +28,30 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
   const [voucherUrl, setVoucherUrl] = useState('');
   const [message, setMessage] = useState('');
 
+  // Slip upload states
+  const [slipFile, setSlipFile] = useState(null);
+  const [slipPreview, setSlipPreview] = useState(null);
+  const [promptpayInfo, setPromptpayInfo] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
   const [error, setError] = useState(null);
   const [copiedPromptPay, setCopiedPromptPay] = useState(false);
 
   const selectedAmount = customAmount ? parseFloat(customAmount) : amount;
+
+  // Load real PromptPay information & EMVCo QR code
+  useEffect(() => {
+    const net = ((selectedAmount || 0) * 1.01).toFixed(2);
+    fetch(`/api/wallet/promptpay-info?amount=${net}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.promptpay) {
+          setPromptpayInfo(data.promptpay);
+        }
+      })
+      .catch(err => console.warn('Could not load PromptPay info:', err));
+  }, [selectedAmount]);
 
   if (!user) {
     return null;
@@ -112,11 +131,38 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
     }
   };
 
-  // Submit handler for QR Code Top-up
+  // Handle slip file selection
+  const handleSlipChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError("กรุณาเลือกไฟล์รูปภาพสลิปเท่านั้น (.jpg, .png, .jpeg, .webp)");
+      return;
+    }
+    setSlipFile(file);
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSlipPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveSlip = () => {
+    setSlipFile(null);
+    setSlipPreview(null);
+  };
+
+  // Submit handler for QR Code Top-up with Slip Verification
   const handleQRCodeSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
       if (onOpenAuth) onOpenAuth('signin');
+      return;
+    }
+
+    if (!slipFile) {
+      setError("กรุณาแนบภาพหลักฐานสลิปการโอนเงินเพื่อตรวจสอบยอดเงิน");
       return;
     }
 
@@ -128,37 +174,57 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
         throw new Error("กรุณาระบุจำนวนเงินที่ถูกต้องอย่างน้อย 1 บาท");
       }
 
-      const res = await fetch('/api/wallet/topup', {
+      const formData = new FormData();
+      formData.append('slip', slipFile);
+      formData.append('amount', selectedAmount);
+
+      const res = await fetch('/api/wallet/upload-slip', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'x-user-id': user.id
         },
-        body: JSON.stringify({
-          amount: selectedAmount,
-          channel: "PromptPay QR Code (ค่าธรรมเนียม 1%)"
-        })
+        body: formData
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "การเติมเงินไม่สำเร็จ");
+      if (!res.ok) throw new Error(data.error || "การตรวจสอบสลิปไม่สำเร็จ");
 
-      updateBalance(data.newBalance);
-      setSuccessData({
-        amount: data.topup.amount,
-        channel: data.topup.channel,
-        id: data.topup.id,
-        newBalance: data.newBalance,
-        date: new Date().toLocaleString('th-TH')
-      });
-
-      try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
+      if (data.verified) {
+        updateBalance(data.newBalance);
+        setSuccessData({
+          amount: data.topup.amount,
+          channel: data.topup.channel,
+          id: data.topup.id,
+          newBalance: data.newBalance,
+          date: new Date().toLocaleString('th-TH'),
+          message: data.message,
+          slipUrl: data.topup.slipUrl,
+          verified: true
         });
-      } catch (e) {}
+
+        try {
+          confetti({
+            particleCount: 140,
+            spread: 85,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {}
+      } else {
+        // Pending admin manual review
+        setSuccessData({
+          amount: data.topup.amount,
+          channel: data.topup.channel,
+          id: data.topup.id,
+          newBalance: user.balance,
+          date: new Date().toLocaleString('th-TH'),
+          message: data.message,
+          slipUrl: data.topup.slipUrl,
+          pending: true
+        });
+      }
+
+      setSlipFile(null);
+      setSlipPreview(null);
 
     } catch (err) {
       setError(err.message);
@@ -648,56 +714,136 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                   </div>
                 </div>
 
-                {/* PromptPay QR Code Box */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 p-5 rounded-2xl bg-white text-black">
-                  <div className="relative p-2 bg-white rounded-xl border border-gray-200 shadow-sm shrink-0">
+                {/* Real PromptPay QR Code Box */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 p-5 sm:p-6 rounded-3xl bg-white text-black shadow-lg">
+                  <div className="relative p-3 bg-white rounded-2xl border-2 border-purple-100 shadow-md shrink-0 text-center">
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY-IBUKIHUB-${selectedAmount}`} 
+                      src={promptpayInfo?.qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PROMPTPAY-${((selectedAmount || 0) * 1.01).toFixed(2)}`} 
                       alt="PromptPay QR Code"
-                      className="w-40 h-40 object-contain rounded-lg"
+                      className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-xl mx-auto"
                     />
+                    <div className="mt-2 text-[11px] font-bold text-blue-800 tracking-wider">
+                      SCAN WITH ANY BANK APP
+                    </div>
                   </div>
 
-                  <div className="space-y-2 text-left text-xs sm:text-sm text-gray-800 flex-1">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200">
-                      <span>พร้อมเพย์ (PromptPay QR)</span>
+                  <div className="space-y-3 text-left text-xs sm:text-sm text-gray-800 flex-1 w-full">
+                    <div className="flex items-center justify-between">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200">
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>พร้อมเพย์ (PromptPay QR)</span>
+                      </div>
+                      <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                        ยอดสแกน: ฿ {((selectedAmount || 0) * 1.01).toFixed(2)}
+                      </span>
                     </div>
-                    <div className="font-bold text-base text-gray-900">
-                      สแกนเพื่อชำระเงิน: ฿ {((selectedAmount || 0) * 1.01).toFixed(2)}
+
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">ชื่อบัญชี:</span>
+                        <span className="font-bold text-gray-900">{promptpayInfo?.accountName || 'Ibuki Store (พร้อมเพย์)'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">เบอร์พร้อมเพย์:</span>
+                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '080-000-2003'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">ธนาคาร:</span>
+                        <span className="font-medium text-gray-700">{promptpayInfo?.bankName || 'พร้อมเพย์ทุกธนาคาร'}</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600">
-                      1. เปิดแอปพลิเคชันธนาคารบนมือถือของคุณ<br/>
-                      2. เลือกเมนู <strong>"สแกน / QR Code"</strong><br/>
-                      3. สแกน QR Code ด้านข้างเพื่อชำระเงิน
-                    </p>
-                    <div className="pt-1 flex items-center gap-2">
+
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(`0987654321`)}
-                        className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold flex items-center gap-1 transition-colors"
+                        onClick={() => copyToClipboard(promptpayInfo?.number || '0800002003')}
+                        className="px-3.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
                       >
                         {copiedPromptPay ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedPromptPay ? 'คัดลอกแล้ว' : 'คัดลอกเลขพร้อมเพย์'}</span>
+                        <span>{copiedPromptPay ? 'คัดลอกเบอร์แล้ว' : 'คัดลอกเบอร์พร้อมเพย์'}</span>
                       </button>
                     </div>
+
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      💡 สแกนเสร็จแล้ว <strong>แนบสลิปโอนเงิน</strong> ด้านล่างเพื่อตรวจสอบยอดและรับเครดิตทันที
+                    </p>
                   </div>
+                </div>
+
+                {/* Bank Slip Upload Box */}
+                <div className="space-y-2 text-left">
+                  <label className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                    <Upload className="w-4 h-4 text-purple-400" />
+                    <span>แนบหลักฐานสลิปการโอนเงิน (Transfer Slip):</span>
+                    <span className="text-pink-400">*จำเป็น</span>
+                  </label>
+
+                  {!slipPreview ? (
+                    <label className="border-2 border-dashed border-purple-500/40 hover:border-purple-400 bg-[#160f2e]/60 hover:bg-[#1b1238] rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleSlipChange} 
+                        className="hidden" 
+                      />
+                      <div className="w-12 h-12 rounded-2xl bg-purple-600/20 group-hover:bg-purple-600/30 text-purple-300 flex items-center justify-center mb-3 transition-colors">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <span className="text-sm font-bold text-white group-hover:text-purple-200">
+                        คลิกเพื่อเลือกไฟล์รูปภาพสลิป หรือลากไฟล์มาวางที่นี่
+                      </span>
+                      <span className="text-xs text-purple-300/60 mt-1">
+                        รองรับไฟล์ภาพสลิปจากทุกธนาคาร (.JPG, .PNG, .JPEG) สูงสุด 12 MB
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-[#17112e] border-2 border-purple-500/40 flex flex-col sm:flex-row items-center gap-4">
+                      <div className="relative w-28 h-36 bg-black rounded-xl overflow-hidden border border-purple-400/40 shrink-0">
+                        <img 
+                          src={slipPreview} 
+                          alt="Slip Preview" 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="space-y-1.5 flex-1 text-xs">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <span className="font-bold text-white text-sm">แนบสลิปเรียบร้อยแล้ว</span>
+                        </div>
+                        <p className="text-purple-200/80 truncate max-w-xs sm:max-w-md">
+                          ไฟล์: {slipFile?.name} ({((slipFile?.size || 0) / 1024).toFixed(1)} KB)
+                        </p>
+                        <p className="text-purple-300/60 text-[11px]">
+                          ระบบจะตรวจสอบยอดเงินและชื่อบัญชีอัตโนมัติเมื่อกดปุ่มยืนยัน
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleRemoveSlip}
+                          className="inline-flex items-center gap-1 text-xs text-pink-400 hover:text-pink-300 font-semibold pt-1 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>เปลี่ยนรูปภาพสลิปใหม่</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-base shadow-[0_6px_25px_rgba(168,85,247,0.5)] transition-all active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={loading || !slipFile}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-base shadow-[0_6px_25px_rgba(168,85,247,0.5)] transition-all active:scale-[0.99] flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <>
                       <RefreshCw className="w-5 h-5 animate-spin" />
-                      <span>กำลังตรวจสอบยอดเงิน...</span>
+                      <span>กำลังตรวจสอบสลิปกับระบบธนาคาร...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>ฉันโอนเงินเรียบร้อยแล้ว (ตรวจสอบยอดอัตโนมัติ)</span>
+                      <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                      <span>ยืนยันการโอนเงินและส่งสลิปตรวจสอบ</span>
                     </>
                   )}
                 </button>

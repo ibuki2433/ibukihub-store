@@ -16,3 +16,7 @@ server/storage/downloads/*.exe
 .DS_Store
 Thumbs.db
 *.log
+
+# Uploaded payment slips
+server/uploads/slips/*
+!server/uploads/slips/.gitkeep

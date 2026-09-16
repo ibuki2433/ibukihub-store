@@ -24,6 +24,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploads (slips, files)
+const uploadsPath = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
+const slipsPath = path.join(uploadsPath, 'slips');
+if (!fs.existsSync(slipsPath)) {
+  fs.mkdirSync(slipsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsPath));
+
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/products', productsRouter);

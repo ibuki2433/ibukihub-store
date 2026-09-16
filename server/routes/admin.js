@@ -671,4 +671,86 @@ router.delete('/promo-codes/:id', requireAdmin, (req, res) => {
   }
 });
 
+// ================= SLIP VERIFICATION & PROMPTPAY MANAGEMENT =================
+
+// 1. Get all slips / topups for admin review
+router.get('/slips', requireAdmin, (req, res) => {
+  try {
+    const allTopups = db.getAllTopups() || [];
+    const slips = allTopups.map(t => {
+      const user = db.getUserById(t.userId);
+      return {
+        ...t,
+        userDisplayName: user?.displayName || t.username,
+        userEmail: user?.email || '',
+        userPhone: user?.phone || ''
+      };
+    });
+
+    res.json({
+      success: true,
+      slips
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. Approve slip
+router.post('/slips/:id/approve', requireAdmin, (req, res) => {
+  try {
+    const result = db.approveTopup(req.params.id);
+    res.json({
+      success: true,
+      message: `อนุมัติรายการเติมเงิน ${result.topup.id} (฿${result.topup.amount}) เรียบร้อยแล้ว`,
+      topup: result.topup,
+      newBalance: result.newBalance
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 3. Reject slip
+router.post('/slips/:id/reject', requireAdmin, (req, res) => {
+  try {
+    const { reason } = req.body;
+    const result = db.rejectTopup(req.params.id, reason);
+    res.json({
+      success: true,
+      message: `ปฏิเสธรายการเติมเงิน ${result.topup.id} เรียบร้อยแล้ว`,
+      topup: result.topup
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 4. Update PromptPay & SlipOK Configuration
+router.post('/settings/promptpay', requireAdmin, (req, res) => {
+  try {
+    const { number, accountName, bankName, slipokApiKey, slipokBranchId, easyslipApiKey, autoApprove, enabled } = req.body;
+    const settings = db.getSettings();
+    if (!settings.promptpay) settings.promptpay = {};
+
+    if (number !== undefined) settings.promptpay.number = String(number).trim();
+    if (accountName !== undefined) settings.promptpay.accountName = String(accountName).trim();
+    if (bankName !== undefined) settings.promptpay.bankName = String(bankName).trim();
+    if (slipokApiKey !== undefined) settings.promptpay.slipokApiKey = String(slipokApiKey).trim();
+    if (slipokBranchId !== undefined) settings.promptpay.slipokBranchId = String(slipokBranchId).trim();
+    if (easyslipApiKey !== undefined) settings.promptpay.easyslipApiKey = String(easyslipApiKey).trim();
+    if (autoApprove !== undefined) settings.promptpay.autoApprove = Boolean(autoApprove);
+    if (enabled !== undefined) settings.promptpay.enabled = Boolean(enabled);
+
+    db.save();
+    res.json({
+      success: true,
+      message: "บันทึกการตั้งค่าพร้อมเพย์และระบบตรวจสลิปเรียบร้อยแล้ว",
+      promptpay: settings.promptpay
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

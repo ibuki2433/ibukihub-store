@@ -32,6 +32,15 @@ const INITIAL_DATA = {
       fromName: "IbukiHub Store",
       host: "smtp.gmail.com",
       port: 465
+    },
+    promptpay: {
+      enabled: true,
+      number: "0800002003",
+      accountName: "Ibuki Store",
+      bankName: "พร้อมเพย์ (PromptPay)",
+      slipokApiKey: "",
+      slipokBranchId: "",
+      autoApprove: true
     }
   },
   users: [
@@ -1176,7 +1185,7 @@ class Database {
   }
 
   // Top-ups
-  createTopup({ userId, amount, channel = "PromptPay QR" }) {
+  createTopup({ userId, amount, channel = "PromptPay QR", status = "approved", slipUrl = null, transRef = null, provider = null, senderName = '', message = '' }) {
     const user = this.getUserById(userId);
     if (!user) throw new Error("ไม่พบผู้ใช้งาน");
 
@@ -1186,17 +1195,64 @@ class Database {
       username: user.username,
       amount: Number(amount),
       channel,
-      status: "approved",
+      status, // "approved" | "pending" | "rejected"
+      slipUrl: slipUrl || null,
+      transRef: transRef || null,
+      provider: provider || null,
+      senderName: senderName || '',
+      message: message || '',
       createdAt: new Date().toISOString()
     };
 
-    user.balance = (user.balance || 0) + Number(amount);
+    if (status === "approved") {
+      user.balance = (user.balance || 0) + Number(amount);
+      try { mysqlDb.updateUserBalance(user.id, user.balance); } catch(e) {}
+    }
+
     this.data.topups.unshift(topup);
     this.save();
     try { mysqlDb.createTopup(topup); } catch(e) {}
-    try { mysqlDb.updateUserBalance(user.id, user.balance); } catch(e) {}
 
     return { topup, newBalance: user.balance };
+  }
+
+  approveTopup(topupId) {
+    const topup = this.data.topups.find(t => t.id === topupId);
+    if (!topup) throw new Error("ไม่พบรายการเติมเงิน");
+    if (topup.status === 'approved') throw new Error("รายการนี้ได้รับอนุมัติไปแล้ว");
+
+    const user = this.getUserById(topup.userId);
+    if (!user) throw new Error("ไม่พบผู้ใช้งานสำหรับรายการนี้");
+
+    topup.status = 'approved';
+    topup.approvedAt = new Date().toISOString();
+    user.balance = (user.balance || 0) + Number(topup.amount);
+
+    this.save();
+    try { mysqlDb.updateUserBalance(user.id, user.balance); } catch(e) {}
+    try { mysqlDb.updateTopupStatus(topup.id, 'approved'); } catch(e) {}
+
+    return { topup, newBalance: user.balance };
+  }
+
+  rejectTopup(topupId, reason = '') {
+    const topup = this.data.topups.find(t => t.id === topupId);
+    if (!topup) throw new Error("ไม่พบรายการเติมเงิน");
+    if (topup.status === 'approved') throw new Error("ไม่สามารถปฏิเสธรายการที่อนุมัติแล้วได้");
+
+    topup.status = 'rejected';
+    topup.rejectReason = reason || 'สลิปไม่ถูกต้อง หรือไม่พบยอดเงินเข้าบัญชี';
+    topup.rejectedAt = new Date().toISOString();
+
+    this.save();
+    try { mysqlDb.updateTopupStatus(topup.id, 'rejected'); } catch(e) {}
+
+    return { topup };
+  }
+
+  isTransRefUsed(transRef) {
+    if (!transRef) return false;
+    return this.data.topups.some(t => t.transRef === transRef && t.status !== 'rejected');
   }
 
   getAllTopups() {

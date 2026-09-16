@@ -4,7 +4,7 @@ import {
   Wallet, Settings, Trash2, Plus, Minus, Upload, CheckCircle2, 
   AlertCircle, HardDrive, Terminal, Users, Phone, Mail, 
   Eye, EyeOff, Edit3, ChevronRight, Smartphone, Send, ShieldCheck, Download,
-  Gift, Tag, Sparkles
+  Gift, Tag, Sparkles, Clock, ExternalLink, Image as ImageIcon, ZoomIn, Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,6 +16,21 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [topups, setTopups] = useState([]);
+  const [slips, setSlips] = useState([]);
+  const [slipFilter, setSlipFilter] = useState('all');
+  const [selectedSlipModal, setSelectedSlipModal] = useState(null);
+  const [promptpayConfig, setPromptpayConfig] = useState({
+    number: '',
+    accountName: '',
+    bankName: '',
+    slipokApiKey: '',
+    slipokBranchId: '',
+    easyslipApiKey: '',
+    autoApprove: true,
+    enabled: true
+  });
+  const [savingPromptPay, setSavingPromptPay] = useState(false);
+  const [processingSlipId, setProcessingSlipId] = useState(null);
   const [members, setMembers] = useState([]);
   const [promoCodes, setPromoCodes] = useState([]);
   const [redeemHistory, setRedeemHistory] = useState([]);
@@ -132,6 +147,26 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
       const resTopups = await fetch(`/api/admin/topups?_t=${timestamp}`, noCacheOpts);
       const dataTopups = await resTopups.json();
       if (resTopups.ok) setTopups(dataTopups.topups || []);
+
+      const resSlips = await fetch(`/api/admin/slips?_t=${timestamp}`, noCacheOpts);
+      const dataSlips = await resSlips.json();
+      if (resSlips.ok) setSlips(dataSlips.slips || []);
+
+      const resPP = await fetch(`/api/wallet/promptpay-info?_t=${timestamp}`, noCacheOpts);
+      const dataPP = await resPP.json();
+      if (resPP.ok && dataPP.promptpay) {
+        setPromptpayConfig(prev => ({
+          ...prev,
+          number: dataPP.promptpay.number || '',
+          accountName: dataPP.promptpay.accountName || '',
+          bankName: dataPP.promptpay.bankName || '',
+          slipokApiKey: dataPP.promptpay.slipokApiKey || '',
+          slipokBranchId: dataPP.promptpay.slipokBranchId || '',
+          easyslipApiKey: dataPP.promptpay.easyslipApiKey || '',
+          autoApprove: dataPP.promptpay.autoApprove !== undefined ? dataPP.promptpay.autoApprove : true,
+          enabled: dataPP.promptpay.enabled !== undefined ? dataPP.promptpay.enabled : true
+        }));
+      }
 
       const resMembers = await fetch(`/api/admin/members?_t=${timestamp}`, noCacheOpts);
       const dataMembers = await resMembers.json();
@@ -550,6 +585,72 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     }
   };
 
+  const handleApproveSlip = async (slipId) => {
+    if (!window.confirm('ยืนยันอนุมัติสลิปนี้และเพิ่มยอดเงินให้ผู้ใช้ทันที?')) return;
+    setProcessingSlipId(slipId);
+    try {
+      const res = await fetch(`/api/admin/slips/${slipId}/approve`, {
+        method: 'POST',
+        headers: { 'x-user-id': user.id }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMsg(data.message || 'อนุมัติสลิปและปรับยอดเงินสำเร็จ');
+      fetchAllAdminData();
+    } catch (err) {
+      setErr('เกิดข้อผิดพลาดในการอนุมัติสลิป: ' + err.message);
+    } finally {
+      setProcessingSlipId(null);
+    }
+  };
+
+  const handleRejectSlip = async (slipId) => {
+    const reason = window.prompt('ระบุเหตุผลที่ปฏิเสธสลิปนี้ (เช่น สลิปซ้ำ, สลิปปลอม, ยอดเงินไม่ตรง):', 'สลิปไม่ถูกต้อง หรือยอดเงินไม่ตรง');
+    if (reason === null) return;
+    setProcessingSlipId(slipId);
+    try {
+      const res = await fetch(`/api/admin/slips/${slipId}/reject`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user.id 
+        },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMsg(data.message || 'ปฏิเสธสลิปเรียบร้อยแล้ว');
+      fetchAllAdminData();
+    } catch (err) {
+      setErr('เกิดข้อผิดพลาดในการปฏิเสธสลิป: ' + err.message);
+    } finally {
+      setProcessingSlipId(null);
+    }
+  };
+
+  const handleSavePromptPay = async (e) => {
+    e.preventDefault();
+    setSavingPromptPay(true);
+    try {
+      const res = await fetch('/api/admin/settings/promptpay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(promptpayConfig)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMsg('บันทึกการตั้งค่าพร้อมเพย์และระบบตรวจสลิปเรียบร้อยแล้ว');
+      fetchAllAdminData();
+    } catch (err) {
+      setErr('บันทึกการตั้งค่าไม่สำเร็จ: ' + err.message);
+    } finally {
+      setSavingPromptPay(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
       
@@ -583,6 +684,7 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
         <div className="flex overflow-x-auto border-b border-purple-900/20 bg-[#120e1e] shrink-0 text-xs sm:text-sm">
           {[
             { id: 'overview', label: 'ภาพรวม & สถิติ', icon: LayoutDashboard },
+            { id: 'slips', label: 'ตรวจสอบสลิป (Slips)', icon: ShieldCheck, badge: slips.filter(s => s.status === 'pending').length },
             { id: 'members', label: 'สมาชิก & รหัสผ่าน (Members)', icon: Users },
             { id: 'topups', label: 'ประวัติเติมเงิน', icon: Wallet },
             { id: 'promo_codes', label: 'โค้ดของขวัญ (Gift Codes)', icon: Gift },
@@ -605,6 +707,11 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
+                {Boolean(tab.badge && tab.badge > 0) && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-neutral-950 text-[10px] font-extrabold animate-pulse ml-0.5">
+                    {tab.badge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -667,6 +774,362 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                   <p className="mt-1">
                     ไฟล์โปรแกรม <code className="bg-black/60 px-2 py-0.5 rounded text-purple-300 font-mono">IbukiDownload_v2.2_Portable.zip</code> (98.9 MB) พร้อมให้บริการส่งมอบอัตโนมัติแล้ว
                   </p>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* SLIPS MANAGEMENT & PROMPTPAY CONFIG */}
+          {activeTab === 'slips' && (
+            <div className="space-y-6">
+              
+              {/* Stats Banner */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-xl bg-[#19142b] border border-purple-500/20">
+                  <div className="text-xs text-purple-300/70">สลิปทั้งหมด</div>
+                  <div className="text-xl font-bold text-white mt-0.5">{slips.length} รายการ</div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30">
+                  <div className="text-xs text-amber-300/80 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>รอตรวจสอบ (Pending)</span>
+                  </div>
+                  <div className="text-xl font-bold text-amber-300 mt-0.5">
+                    {slips.filter(s => s.status === 'pending').length} รายการ
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30">
+                  <div className="text-xs text-emerald-300/80 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>อนุมัติแล้ว (Approved)</span>
+                  </div>
+                  <div className="text-xl font-bold text-emerald-300 mt-0.5">
+                    {slips.filter(s => s.status === 'approved').length} รายการ
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-red-950/30 border border-red-500/30">
+                  <div className="text-xs text-red-300/80 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>ปฏิเสธ (Rejected)</span>
+                  </div>
+                  <div className="text-xl font-bold text-red-300 mt-0.5">
+                    {slips.filter(s => s.status === 'rejected').length} รายการ
+                  </div>
+                </div>
+              </div>
+
+              {/* PromptPay & SlipOK Configuration Card */}
+              <div className="p-5 rounded-2xl bg-[#19142b] border border-purple-500/30 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-900/30 pb-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-purple-400" />
+                      <span>ตั้งค่าบัญชีพร้อมเพย์ & ระบบตรวจสลิป (PromptPay & SlipOK)</span>
+                    </h4>
+                    <p className="text-xs text-purple-300/70 mt-0.5">
+                      กำหนดเบอร์หรือเลขพร้อมเพย์จริงของร้านค้า และตั้งค่าตรวจสลิปอัตโนมัติ 100%
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                      promptpayConfig.enabled 
+                        ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300' 
+                        : 'bg-red-950/80 border-red-500/50 text-red-300'
+                    }`}>
+                      {promptpayConfig.enabled ? '● เปิดรับพร้อมเพย์' : '○ ปิดรับพร้อมเพย์'}
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSavePromptPay} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <label className="block text-purple-200 font-semibold mb-1">
+                        หมายเลขพร้อมเพย์ (PromptPay No.): <span className="text-amber-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="เช่น 0812345678 หรือ เลขบัตร ปชช 13 หลัก"
+                        value={promptpayConfig.number}
+                        onChange={(e) => setPromptpayConfig({ ...promptpayConfig, number: e.target.value })}
+                        className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-purple-400"
+                      />
+                      <span className="text-[10px] text-purple-300/60 block mt-1">เบอร์มือถือ 10 หลัก หรือเลขบัตรประชาชน 13 หลัก</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-purple-200 font-semibold mb-1">
+                        ชื่อบัญชี (Account Name): <span className="text-amber-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="เช่น นาย สมชาย ใจดี หรือ IbukiHub Store"
+                        value={promptpayConfig.accountName}
+                        onChange={(e) => setPromptpayConfig({ ...promptpayConfig, accountName: e.target.value })}
+                        className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                      />
+                      <span className="text-[10px] text-purple-300/60 block mt-1">ชื่อเจ้าของบัญชีที่จะแสดงให้ลูกค้าเห็น</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-purple-200 font-semibold mb-1">
+                        ชื่อธนาคาร (Bank Name):
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="เช่น กสิกรไทย, ไทยพาณิชย์, กรุงไทย, พร้อมเพย์"
+                        value={promptpayConfig.bankName}
+                        onChange={(e) => setPromptpayConfig({ ...promptpayConfig, bankName: e.target.value })}
+                        className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
+                      />
+                      <span className="text-[10px] text-purple-300/60 block mt-1">ธนาคารเจ้าของเบอร์หรือบัญชี</span>
+                    </div>
+                  </div>
+
+                  {/* SlipOK API Settings */}
+                  <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-500/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                        <span>ระบบตรวจสอบสลิปอัตโนมัติ SlipOK API (ตรวจยอดเงินเข้าบัญชีจริงทันที)</span>
+                      </div>
+                      <a
+                        href="https://slipok.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-purple-300 hover:text-white flex items-center gap-1 underline"
+                      >
+                        <span>สมัคร SlipOK ฟรี</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <label className="block text-purple-200 mb-1 font-medium">SlipOK API Key:</label>
+                        <input
+                          type="password"
+                          placeholder="ใส่ SlipOK API Key เช่น slipok_live_..."
+                          value={promptpayConfig.slipokApiKey}
+                          onChange={(e) => setPromptpayConfig({ ...promptpayConfig, slipokApiKey: e.target.value })}
+                          className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-purple-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-purple-200 mb-1 font-medium">SlipOK Branch ID (ID สาขา):</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น 1425"
+                          value={promptpayConfig.slipokBranchId}
+                          onChange={(e) => setPromptpayConfig({ ...promptpayConfig, slipokBranchId: e.target.value })}
+                          className="w-full bg-black/60 border border-purple-500/30 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-purple-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+                      <label className="flex items-center gap-2 text-purple-200 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={promptpayConfig.autoApprove}
+                          onChange={(e) => setPromptpayConfig({ ...promptpayConfig, autoApprove: e.target.checked })}
+                          className="w-4 h-4 rounded text-purple-600 bg-black/40 border-purple-500/40"
+                        />
+                        <span>อนุมัติและปรับยอดเงินให้อัตโนมัติทันทีเมื่อตรวจสลิปผ่าน (Auto-approve)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 text-purple-200 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={promptpayConfig.enabled}
+                          onChange={(e) => setPromptpayConfig({ ...promptpayConfig, enabled: e.target.checked })}
+                          className="w-4 h-4 rounded text-purple-600 bg-black/40 border-purple-500/40"
+                        />
+                        <span>เปิดใช้งานช่องทางพร้อมเพย์ในหน้าเว็บ</span>
+                      </label>
+                    </div>
+
+                    <p className="text-[11px] text-purple-300/70">
+                      💡 <strong>หมายเหตุ:</strong> หากยังไม่ได้ใส่ SlipOK API Key หรือระบบตรวจสลิปอัตโนมัติไม่ผ่าน ระบบจะจัดเก็บสลิปไว้ในสถานะ <strong>"รอตรวจสอบ (Pending)"</strong> ให้แอดมินสามารถดูรูปสลิปและกดปุ่ม "อนุมัติ" ด้วยตนเองได้ตลอดเวลา
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={savingPromptPay}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{savingPromptPay ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่าพร้อมเพย์'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Slips List with Filter */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-purple-400" />
+                    <span>รายการสลิปทั้งหมด ({slips.length})</span>
+                  </h4>
+
+                  {/* Filter tabs */}
+                  <div className="flex items-center gap-1 p-1 bg-black/40 rounded-xl border border-purple-500/20 text-xs self-start sm:self-auto">
+                    {[
+                      { id: 'all', label: `ทั้งหมด (${slips.length})` },
+                      { id: 'pending', label: `รอตรวจสอบ (${slips.filter(s => s.status === 'pending').length})` },
+                      { id: 'approved', label: `อนุมัติแล้ว (${slips.filter(s => s.status === 'approved').length})` },
+                      { id: 'rejected', label: `ปฏิเสธ (${slips.filter(s => s.status === 'rejected').length})` }
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setSlipFilter(f.id)}
+                        className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                          slipFilter === f.id
+                            ? 'bg-purple-700 text-white font-bold shadow-sm'
+                            : 'text-purple-300/70 hover:text-white'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto rounded-xl border border-purple-900/30 bg-[#161224]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#100c1e] text-purple-300/70 uppercase text-[10px]">
+                      <tr>
+                        <th className="p-3">สลิป</th>
+                        <th className="p-3">รหัสรายการ</th>
+                        <th className="p-3">สมาชิก</th>
+                        <th className="p-3">ยอดเงิน</th>
+                        <th className="p-3">ช่องทาง / Provider</th>
+                        <th className="p-3">เลขอ้างอิง (TransRef)</th>
+                        <th className="p-3">สถานะ</th>
+                        <th className="p-3">วันที่โอน</th>
+                        <th className="p-3 text-right">การจัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20">
+                      {slips
+                        .filter(s => slipFilter === 'all' || s.status === slipFilter)
+                        .map((s) => (
+                          <tr key={s.id} className="hover:bg-purple-900/10 transition-colors">
+                            {/* Slip Thumbnail */}
+                            <td className="p-3">
+                              {s.slipUrl ? (
+                                <div 
+                                  onClick={() => setSelectedSlipModal(s)}
+                                  className="w-12 h-12 rounded-lg overflow-hidden border border-purple-500/40 cursor-pointer group relative bg-black shrink-0 hover:border-purple-300"
+                                  title="คลิกเพื่อดูรูปสลิปขนาดใหญ่"
+                                >
+                                  <img 
+                                    src={s.slipUrl} 
+                                    alt="Slip" 
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <ZoomIn className="w-3.5 h-3.5 text-white" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-neutral-500 text-[10px] italic">ไม่มีสลิป</span>
+                              )}
+                            </td>
+
+                            <td className="p-3 font-mono font-bold text-purple-300 select-all">
+                              {s.id}
+                            </td>
+
+                            <td className="p-3">
+                              <div className="font-bold text-white">{s.userDisplayName || s.username || s.userId}</div>
+                              <div className="text-[10px] text-purple-300/60 font-mono">@{s.username}</div>
+                              {s.userPhone && <div className="text-[10px] text-emerald-400 font-mono">{s.userPhone}</div>}
+                            </td>
+
+                            <td className="p-3">
+                              <div className="text-sm font-black font-mono text-emerald-400">
+                                ฿ {Number(s.amount || 0).toLocaleString()}
+                              </div>
+                            </td>
+
+                            <td className="p-3">
+                              <div className="text-purple-200 font-medium">{s.channel || 'PromptPay QR'}</div>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 inline-block mt-0.5">
+                                {s.provider || 'Direct / Manual'}
+                              </span>
+                            </td>
+
+                            <td className="p-3 font-mono text-[11px] text-neutral-300 select-all">
+                              {s.transRef || '-'}
+                            </td>
+
+                            <td className="p-3">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
+                                s.status === 'approved'
+                                  ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
+                                  : s.status === 'pending'
+                                    ? 'bg-amber-950/80 text-amber-300 border border-amber-500/40 animate-pulse'
+                                    : 'bg-red-950/80 text-red-300 border border-red-500/40'
+                              }`}>
+                                {s.status === 'approved' ? '✓ อนุมัติแล้ว' : s.status === 'pending' ? '⏳ รอตรวจ' : '✕ ปฏิเสธ'}
+                              </span>
+                            </td>
+
+                            <td className="p-3 text-[11px] text-purple-300/70">
+                              {new Date(s.createdAt).toLocaleString('th-TH')}
+                            </td>
+
+                            <td className="p-3 text-right whitespace-nowrap">
+                              {s.status === 'pending' ? (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    disabled={processingSlipId === s.id}
+                                    onClick={() => handleApproveSlip(s.id)}
+                                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                                    title="อนุมัติและปรับยอดเงินให้สมาชิก"
+                                  >
+                                    อนุมัติ
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={processingSlipId === s.id}
+                                    onClick={() => handleRejectSlip(s.id)}
+                                    className="px-3 py-1.5 rounded-lg bg-rose-600/40 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 text-xs font-bold transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                    title="ปฏิเสธสลิป"
+                                  >
+                                    ปฏิเสธ
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSlipModal(s)}
+                                  className="px-2.5 py-1 rounded-lg bg-purple-900/40 hover:bg-purple-800 text-purple-200 text-xs transition-colors cursor-pointer"
+                                >
+                                  ดูสลิป
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+
+                  {slips.filter(s => slipFilter === 'all' || s.status === slipFilter).length === 0 && (
+                    <div className="p-8 text-center text-purple-300/50 text-xs">
+                      ไม่พบรายการสลิปในหมวดหมู่นี้
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1903,6 +2366,145 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* SLIP DETAIL & ZOOM MODAL */}
+      {selectedSlipModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150"
+          onClick={() => setSelectedSlipModal(null)}
+        >
+          <div 
+            className="w-full max-w-2xl bg-[#171328] border border-purple-500/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-4 bg-[#19142b] border-b border-purple-900/30 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-purple-400" />
+                  <span>ตรวจสอบสลิปการโอนเงิน (#{selectedSlipModal.id})</span>
+                </h4>
+                <div className="text-xs text-purple-300/70 mt-0.5">
+                  ผู้ใช้: <strong>{selectedSlipModal.userDisplayName || selectedSlipModal.username}</strong> (@{selectedSlipModal.username})
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSlipModal(null)}
+                className="p-1.5 rounded-lg bg-black/40 hover:bg-neutral-800 text-neutral-300 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                {/* Image preview */}
+                <div className="w-full sm:w-1/2 max-h-96 rounded-2xl overflow-hidden border border-purple-500/30 bg-black flex items-center justify-center p-1">
+                  {selectedSlipModal.slipUrl ? (
+                    <img
+                      src={selectedSlipModal.slipUrl}
+                      alt="Full Slip"
+                      className="max-w-full max-h-96 object-contain rounded-xl"
+                    />
+                  ) : (
+                    <div className="p-8 text-neutral-500 text-xs">ไม่มีรูปสลิป</div>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="w-full sm:w-1/2 space-y-2.5 text-xs">
+                  <div className="p-3 rounded-xl bg-black/40 border border-purple-500/20">
+                    <span className="text-[10px] text-neutral-400 block">ยอดเงินที่ขอเติม</span>
+                    <span className="text-2xl font-black font-mono text-emerald-400">
+                      ฿ {Number(selectedSlipModal.amount || 0).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-black/40 border border-purple-500/20 space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">สถานะ:</span>
+                      <span className={`font-bold ${
+                        selectedSlipModal.status === 'approved' ? 'text-emerald-400' : selectedSlipModal.status === 'pending' ? 'text-amber-400' : 'text-red-400'
+                      }`}>
+                        {selectedSlipModal.status === 'approved' ? '✓ อนุมัติแล้ว' : selectedSlipModal.status === 'pending' ? '⏳ รอตรวจสอบ' : '✕ ปฏิเสธ'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">ช่องทาง:</span>
+                      <span className="text-purple-200 font-medium">{selectedSlipModal.channel || 'PromptPay QR'}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Provider:</span>
+                      <span className="text-purple-300 font-mono">{selectedSlipModal.provider || 'Direct / Manual'}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">TransRef:</span>
+                      <span className="text-amber-300 font-mono font-bold select-all">{selectedSlipModal.transRef || '-'}</span>
+                    </div>
+
+                    {selectedSlipModal.senderName && (
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">ผู้โอนเงิน:</span>
+                        <span className="text-white font-medium">{selectedSlipModal.senderName}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">เวลาที่ส่ง:</span>
+                      <span className="text-purple-300/80">{new Date(selectedSlipModal.createdAt).toLocaleString('th-TH')}</span>
+                    </div>
+                  </div>
+
+                  {selectedSlipModal.slipUrl && (
+                    <a
+                      href={selectedSlipModal.slipUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-purple-900/40 hover:bg-purple-800 text-purple-200 text-xs transition-colors border border-purple-500/30"
+                    >
+                      <span>เปิดดูภาพขนาดเต็มในแท็บใหม่</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer actions if pending */}
+            {selectedSlipModal.status === 'pending' && (
+              <div className="p-4 bg-[#19142b] border-t border-purple-900/30 flex items-center justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  disabled={processingSlipId === selectedSlipModal.id}
+                  onClick={() => {
+                    handleApproveSlip(selectedSlipModal.id);
+                    setSelectedSlipModal(null);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+                >
+                  อนุมัติและปรับยอดเงิน (+฿{Number(selectedSlipModal.amount || 0).toLocaleString()})
+                </button>
+                <button
+                  type="button"
+                  disabled={processingSlipId === selectedSlipModal.id}
+                  onClick={() => {
+                    handleRejectSlip(selectedSlipModal.id);
+                    setSelectedSlipModal(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-rose-600/40 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 font-bold text-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                >
+                  ปฏิเสธสลิป
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

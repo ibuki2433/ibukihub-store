@@ -1,7 +1,42 @@
 import express from 'express';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import multer from 'multer';
 import { db } from '../db.js';
+import { generatePromptPayPayload } from '../utils/promptpay.js';
+import { verifyBankSlip } from '../services/slipVerification.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const slipsDir = path.join(__dirname, '..', 'uploads', 'slips');
+if (!fs.existsSync(slipsDir)) {
+  fs.mkdirSync(slipsDir, { recursive: true });
+}
+
+const slipStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, slipsDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    cb(null, `slip_${Date.now()}_${Math.floor(Math.random() * 100000)}${ext}`);
+  }
+});
+
+const uploadSlip = multer({
+  storage: slipStorage,
+  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('กรุณาอัปโหลดไฟล์รูปภาพสลิปเท่านั้น (.jpg, .png, .jpeg, .webp)'));
+    }
+  }
+});
 
 const execFileAsync = promisify(execFile);
 const router = express.Router();
@@ -216,31 +251,159 @@ router.get('/truemoney-gift-stats', (req, res) => {
   }
 });
 
-// 3. Regular top-up (PromptPay QR)
+// 3. Get Real PromptPay QR and Account Info
+router.get('/promptpay-info', (req, res) => {
+  try {
+    const settings = db.getSettings();
+    const promptpay = settings?.promptpay || {};
+    const amount = req.query.amount ? parseFloat(req.query.amount) : null;
+    const targetNumber = promptpay.number || '0800002003';
+    const qrPayload = generatePromptPayPayload(targetNumber, amount);
+
+    res.json({
+      success: true,
+      promptpay: {
+        enabled: promptpay.enabled !== false,
+        number: targetNumber,
+        accountName: promptpay.accountName || 'Ibuki Store',
+        bankName: promptpay.bankName || 'พร้อมเพย์ (PromptPay)',
+        qrPayload,
+        qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}`
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Submit & Verify Bank Transfer Slip (Slip Verification)
+router.post('/upload-slip', uploadSlip.single('slip'), async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'];
+    if (!userId) {
+      return res.status(401).json({ error: "กรุณาเข้าสู่ระบบก่อนทำรายการเติมเงิน" });
+    }
+
+    const user = db.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลบัญชีผู้ใช้งาน" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "กรุณาแนบไฟล์รูปภาพสลิปการโอนเงิน" });
+    }
+
+    const expectedAmount = parseFloat(req.body.amount || 0);
+    const slipUrl = `/uploads/slips/${req.file.filename}`;
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const settings = db.getSettings();
+
+    // Verify bank slip using SlipOK or EasySlip
+    const verifyResult = await verifyBankSlip({
+      fileBuffer,
+      mimeType: req.file.mimetype,
+      fileName: req.file.originalname,
+      expectedAmount,
+      settings
+    });
+
+    // Check duplicate transRef
+    if (verifyResult.transRef) {
+      const alreadyUsed = db.isTransRefUsed(verifyResult.transRef);
+      if (alreadyUsed) {
+        try { fs.unlinkSync(req.file.path); } catch (e) {}
+        return res.status(400).json({ error: "สลิปนี้เคยถูกนำมาใช้งานในระบบแล้ว ไม่สามารถใช้สลิปซ้ำได้" });
+      }
+    }
+
+    if (verifyResult.verified) {
+      // Slip verified successfully via SlipOK / EasySlip
+      const confirmedAmount = verifyResult.amount || expectedAmount;
+      const topupResult = db.createTopup({
+        userId: user.id,
+        amount: confirmedAmount,
+        channel: `พร้อมเพย์ QR (${verifyResult.provider || 'SlipOK'})`,
+        status: "approved",
+        slipUrl,
+        transRef: verifyResult.transRef,
+        provider: verifyResult.provider,
+        senderName: verifyResult.senderName || '',
+        message: verifyResult.message || 'ตรวจสลิปอัตโนมัติสำเร็จ'
+      });
+
+      return res.json({
+        success: true,
+        verified: true,
+        message: `ตรวจสอบสลิปสำเร็จ! ได้รับเครดิต ฿${confirmedAmount.toLocaleString()} เข้ากระเป๋าเรียบร้อยแล้ว`,
+        topup: topupResult.topup,
+        newBalance: topupResult.newBalance
+      });
+    }
+
+    if (verifyResult.needsManualReview) {
+      // If autoApprove is enabled in settings or manual review
+      const promptpayConfig = settings?.promptpay || {};
+      const shouldAutoApprove = promptpayConfig.autoApprove === true;
+
+      const topupResult = db.createTopup({
+        userId: user.id,
+        amount: expectedAmount || 0,
+        channel: "พร้อมเพย์ QR (แนบสลิป)",
+        status: shouldAutoApprove ? "approved" : "pending",
+        slipUrl,
+        transRef: verifyResult.transRef,
+        senderName: user.displayName || user.username,
+        message: shouldAutoApprove ? "แนบสลิปถูกต้อง เติมเงินสำเร็จ" : "รอแอดมินตรวจสอบสลิปและอนุมัติ"
+      });
+
+      return res.json({
+        success: true,
+        pending: !shouldAutoApprove,
+        verified: shouldAutoApprove,
+        message: shouldAutoApprove 
+          ? `แนบสลิปสำเร็จ! ได้รับเครดิต ฿${(expectedAmount || 0).toLocaleString()} เรียบร้อยแล้ว`
+          : "ระบบได้รับสลิปโอนเงินของคุณแล้ว แอดมินกำลังตรวจสอบยอดและจะอนุมัติเครดิตให้โดยเร็วครับ",
+        topup: topupResult.topup,
+        newBalance: topupResult.newBalance
+      });
+    }
+
+    // Verification failed (fake/invalid slip)
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    return res.status(400).json({
+      error: verifyResult.error || "สลิปไม่ถูกต้อง หรือไม่พบข้อมูลการโอนเงินในระบบธนาคาร กรุณาตรวจสอบสลิปของคุณอีกครั้ง"
+    });
+
+  } catch (err) {
+    console.error("Upload slip error:", err);
+    res.status(500).json({ error: err.message || "เกิดข้อผิดพลาดในการตรวจสอบสลิป" });
+  }
+});
+
+// 5. Admin-only Direct Credit Adjustment
 router.post('/topup', (req, res) => {
   try {
-    const { amount, channel = "PromptPay QR", voucherCode } = req.body;
     const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-      return res.status(401).json({ error: "กรุณาเข้าสู่ระบบก่อนเติมเงิน" });
+    const user = db.getUserById(userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: "ไม่อนุญาตให้เติมเงินโดยตรง กรุณาแนบสลิปโอนเงินเพื่อเติมเครดิต" });
     }
+
+    const { targetUserId, amount } = req.body;
+    const targetUser = db.getUserById(targetUserId || userId);
+    if (!targetUser) return res.status(404).json({ error: "ไม่พบผู้ใช้งาน" });
 
     const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return res.status(400).json({ error: "จำนวนเงินไม่ถูกต้อง กรุณาระบุจำนวนเงินอย่างน้อย 1 บาท" });
-    }
-
     const result = db.createTopup({
-      userId,
+      userId: targetUser.id,
       amount: numAmount,
-      channel: voucherCode ? `TrueMoney Voucher (${voucherCode.substring(0, 10)}...)` : channel
+      channel: "Admin Manual Topup",
+      status: "approved"
     });
 
     res.json({
       success: true,
-      message: `เติมเงินสำเร็จเรียบร้อย! ได้รับ ${numAmount.toLocaleString()} ฿`,
-      topup: result.topup,
+      message: `แอดมินเติมเงินสำเร็จ ฿${numAmount.toLocaleString()}`,
       newBalance: result.newBalance
     });
   } catch (err) {

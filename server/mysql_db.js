@@ -496,6 +496,17 @@ class MySQLDatabase {
     }
   }
 
+  async updateTopupStatus(topupId, status) {
+    if (!this.connected) return false;
+    try {
+      await this.pool.query('UPDATE topups SET status = ? WHERE id = ?', [status, topupId]);
+      return true;
+    } catch (err) {
+      console.error('[MySQL] updateTopupStatus error:', err.message);
+      return false;
+    }
+  }
+
   async getTopupsByUserId(userId) {
     if (!this.connected) return [];
     try {
