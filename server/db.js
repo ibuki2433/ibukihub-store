@@ -200,17 +200,6 @@ class Database {
       } else {
         this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
       }
-      // Purge all previously registered customer accounts except main Admin ID
-      if (this.data.users) {
-        this.data.users = this.data.users.filter(u => 
-          u.id === 'usr_admin_ibuki' || u.username === 'ibuki' || u.isRootAdmin || u.role === 'admin'
-        );
-      }
-      if (this.data.orders) {
-        this.data.orders = this.data.orders.filter(o => 
-          o.userId === 'usr_admin_ibuki' || o.username === 'ibuki'
-        );
-      }
       if (this.data.settings?.stats) {
         this.data.settings.stats.totalMembers = this.data.users ? this.data.users.length : 1;
       }
@@ -249,19 +238,57 @@ class Database {
     try {
       const connected = await mysqlDb.connect();
       if (connected) {
-        const admin = this.data.users.find(u => u.role === 'admin');
-        if (admin) {
-          await mysqlDb.resetUsersToAdminOnly(admin);
-          await mysqlDb.resetOrdersToAdminOnly(admin.id);
+        // 1. Bidirectional sync for Users: Load any MySQL users into JSON if missing
+        const mysqlUsers = await mysqlDb.getAllUsers();
+        if (Array.isArray(mysqlUsers)) {
+          for (const mu of mysqlUsers) {
+            const existing = this.data.users.find(u => u.id === mu.id || (u.username && mu.username && u.username.toLowerCase() === mu.username.toLowerCase()));
+            if (!existing) {
+              this.data.users.push(mu);
+            } else {
+              if (mu.balance !== undefined && mu.balance !== existing.balance) {
+                existing.balance = mu.balance;
+              }
+            }
+          }
         }
+        // Sync all local JSON users into MySQL
+        if (Array.isArray(this.data.users)) {
+          for (const u of this.data.users) {
+            await mysqlDb.upsertUser(u);
+          }
+        }
+
+        // 2. Sync all products to MySQL
         if (this.data.products) {
           await mysqlDb.syncProducts(this.data.products);
         }
+
+        // 3. Sync all promo codes to MySQL
         if (this.data.promoCodes) {
           for (const pc of this.data.promoCodes) {
             await mysqlDb.upsertPromoCode(pc);
           }
         }
+
+        // 4. Sync all orders to MySQL
+        if (Array.isArray(this.data.orders)) {
+          for (const o of this.data.orders) {
+            await mysqlDb.createOrder(o);
+          }
+        }
+
+        // 5. Sync all topups to MySQL
+        if (Array.isArray(this.data.topups)) {
+          for (const t of this.data.topups) {
+            await mysqlDb.recordTopup(t);
+          }
+        }
+
+        if (this.data.settings?.stats) {
+          this.data.settings.stats.totalMembers = this.data.users ? this.data.users.length : 1;
+        }
+        this.save(false);
       }
     } catch (e) {
       console.warn('[MySQL] Init hook warning:', e.message);
@@ -718,6 +745,17 @@ class Database {
 
                 if (hasChanges) {
                   this.save(false);
+                  if (mysqlDb.connected) {
+                    for (const u of this.data.users) {
+                      mysqlDb.upsertUser(u).catch(() => {});
+                    }
+                    for (const o of this.data.orders) {
+                      mysqlDb.createOrder(o).catch(() => {});
+                    }
+                    for (const t of this.data.topups) {
+                      mysqlDb.recordTopup(t).catch(() => {});
+                    }
+                  }
                 }
               }
               resolve(true);

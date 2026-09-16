@@ -367,16 +367,10 @@ class MySQLDatabase {
     }
   }
 
-  // ลบประวัติสมาชิกลูกค้าทั้งหมด เหลือเฉพาะ Admin หลัก
+  // Deprecated: No-op to preserve all customer accounts
   async resetUsersToAdminOnly(adminUser) {
     if (!this.connected) return;
-    try {
-      await this.pool.query('DELETE FROM users WHERE id != ?', [adminUser.id]);
-      await this.upsertUser(adminUser);
-      console.log('[MySQL] Reset all members: Kept only root admin in MySQL database.');
-    } catch (err) {
-      console.error('[MySQL] resetUsersToAdminOnly error:', err.message);
-    }
+    if (adminUser) await this.upsertUser(adminUser);
   }
 
   // ================= ORDERS (สินค้าลูกค้าซื้อไป) =================
@@ -446,17 +440,16 @@ class MySQLDatabase {
     }
   }
 
+  // Deprecated: No-op to preserve customer orders
   async resetOrdersToAdminOnly(adminUserId) {
-    if (!this.connected) return;
-    try {
-      await this.pool.query('DELETE FROM orders WHERE user_id != ?', [adminUserId]);
-      console.log('[MySQL] Cleaned non-admin orders in MySQL.');
-    } catch (err) {
-      console.error('[MySQL] resetOrdersToAdminOnly error:', err.message);
-    }
+    return;
   }
 
   // ================= TOPUPS (เงินที่ลูกค้าเติมไว้) =================
+  async recordTopup(topup) {
+    return this.createTopup(topup);
+  }
+
   async createTopup(topup) {
     if (!this.connected) return null;
     try {
