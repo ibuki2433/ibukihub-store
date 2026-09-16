@@ -393,7 +393,7 @@ class Database {
         }
       ],
       systemRequirements: "Windows 10 / Windows 11 (64-bit), Google Chrome, RAM 4GB ขึ้นไป, พื้นที่ว่าง 300MB",
-      fileName: "Ibuki FB AutoPoster Pro.exe",
+      fileName: "Ibuki FB AutoPoster Pro_v1.0_Portable.zip",
       fileSize: "125 MB",
       imageUrl: "/autoposter_ui.png",
       previewUrl: "/autoposter_ui.png",

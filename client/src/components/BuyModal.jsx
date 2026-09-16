@@ -188,8 +188,8 @@ export default function BuyModal({ product, initialPlanId, onClose, onOpenTopup,
                   <span>{t('buyPackageFile')}</span>
                   <span className="font-semibold text-purple-200">
                     {purchasedOrder.productId === 'prod_autoposter' || purchasedOrder.productName?.toLowerCase().includes('autoposter')
-                      ? 'Ibuki FB AutoPoster Pro.exe'
-                      : (purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro.exe')}
+                      ? 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip'
+                      : (purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip')}
                   </span>
                 </div>
 
@@ -197,15 +197,15 @@ export default function BuyModal({ product, initialPlanId, onClose, onOpenTopup,
                   href={`/api/download/${purchasedOrder.id}?userId=${user?.id}`}
                   download={
                     purchasedOrder.productId === 'prod_autoposter' || purchasedOrder.productName?.toLowerCase().includes('autoposter')
-                      ? 'Ibuki FB AutoPoster Pro.exe'
-                      : (purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro.exe')
+                      ? 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip'
+                      : (purchasedOrder.fileName || 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip')
                   }
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(168,85,247,0.5)] transition-all transform active:scale-95"
                 >
                   <Download className="w-4 h-4" />
                   <span>
                     {purchasedOrder.productId === 'prod_autoposter' || purchasedOrder.productName?.toLowerCase().includes('autoposter')
-                      ? 'ดาวน์โหลดโปรแกรม Ibuki FB AutoPoster Pro.exe'
+                      ? 'ดาวน์โหลดโปรแกรม Ibuki FB AutoPoster Pro (.zip)'
                       : (purchasedOrder.fileName?.endsWith('.exe')
                           ? `ดาวน์โหลดโปรแกรม (${purchasedOrder.fileName})`
                           : `ดาวน์โหลดไฟล์ซอฟต์แวร์ (${purchasedOrder.fileName || '.zip'})`)}
@@ -213,9 +213,7 @@ export default function BuyModal({ product, initialPlanId, onClose, onOpenTopup,
                 </a>
 
                 <p className="text-[11px] text-center text-purple-300/70">
-                  {purchasedOrder.productId === 'prod_autoposter' || purchasedOrder.productName?.toLowerCase().includes('autoposter') || purchasedOrder.fileName?.endsWith('.exe')
-                    ? '✨ โปรแกรมแบบ Standalone (.exe) โหลดเสร็จแล้วดับเบิลคลิกเปิดใช้งานและกรอกคีย์ได้ทันที ไม่ต้องแตกไฟล์'
-                    : '📦 ไฟล์แบบ Portable (.zip) แตกไฟล์แล้วเปิดโฟลเดอร์รันโปรแกรมได้ทันที'}
+                  📦 ไฟล์แบบ Portable (.zip) ขนาด 125 MB แตกไฟล์แล้วเปิดโปรแกรม Ibuki FB AutoPoster Pro และกรอกคีย์ใช้งานได้ทันที
                 </p>
               </div>
 

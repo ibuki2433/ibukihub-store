@@ -33,22 +33,26 @@ router.all('/:orderId', (req, res) => {
     const product = db.getProductById(order.productId);
     let fileName = order.fileName || (product && product.fileName) || "IbukiDownload_v2.5_Portable.zip";
     
-    // Always serve Ibuki FB AutoPoster Pro.exe for autoposter product
+    // Always serve Ibuki FB AutoPoster Pro_v1.0_Portable.zip for autoposter product
     if (
       order.productId === 'prod_autoposter' || 
       (order.productName && order.productName.toLowerCase().includes('autoposter')) ||
       (order.fileName && order.fileName.toLowerCase().includes('autoposter'))
     ) {
-      const exeCandidates = [
+      const zipCandidates = [
+        path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip'),
+        'C:\\Users\\User\\Downloads\\Ibuki FB AutoPoster Pro_v1.0_Portable.zip',
+        path.join(DOWNLOADS_DIR, 'Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip'),
         'C:\\Users\\User\\Downloads\\Ibuki FB AutoPoster Pro.exe',
-        path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro.exe'),
-        path.join(DOWNLOADS_DIR, 'Ibuki_FB_AutoPoster_Pro_v1.0.exe'),
-        'C:\\Users\\User\\AppData\\Local\\IbukiAutoPosterApp\\Ibuki FB AutoPoster Pro\\Ibuki FB AutoPoster Pro.exe'
+        path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro.exe')
       ];
 
-      for (const exePath of exeCandidates) {
-        if (fs.existsSync(exePath)) {
-          return res.download(exePath, 'Ibuki FB AutoPoster Pro.exe', (err) => {
+      for (const zipPath of zipCandidates) {
+        if (fs.existsSync(zipPath)) {
+          const downloadName = zipPath.endsWith('.zip') 
+            ? 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip' 
+            : 'Ibuki FB AutoPoster Pro.exe';
+          return res.download(zipPath, downloadName, (err) => {
             if (err && !res.headersSent) {
               console.error("Download stream error:", err);
               res.status(500).send("เกิดข้อผิดพลาดในการดาวน์โหลด: " + err.message);
@@ -56,7 +60,7 @@ router.all('/:orderId', (req, res) => {
           });
         }
       }
-      return res.status(404).send("<h1>404 ไม่พบไฟล์ Ibuki FB AutoPoster Pro.exe ในระบบ กรุณาตรวจสอบว่ามีไฟล์อยู่ใน Downloads</h1>");
+      return res.status(404).send("<h1>404 ไม่พบไฟล์ Ibuki FB AutoPoster Pro_v1.0_Portable.zip ในระบบ</h1>");
     }
 
     // 1. Check local file candidates (user Downloads folder or server downloads directory)
