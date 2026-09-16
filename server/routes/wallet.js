@@ -90,53 +90,72 @@ router.post('/truemoney-gift', async (req, res) => {
       amount = 100.00;
       redeemedSuccessfully = true;
     } else {
-      // Call TrueMoney API (via curl.exe to bypass Cloudflare WAF TLS fingerprinting)
-      try {
-        const url = `https://gift.truemoney.com/campaign/vouchers/${voucherCode}/redeem`;
-        const bodyJson = JSON.stringify({
-          mobile: receiverPhone,
-          voucher_hash: voucherCode
-        });
+      const curlBin = process.platform === 'win32' ? 'curl.exe' : 'curl';
+      const bodyJson = JSON.stringify({
+        mobile: receiverPhone,
+        voucher_hash: voucherCode
+      });
+
+      const endpoints = [
+        `https://gift.truemoney.com/campaign/vouchers/${voucherCode}/redeem`,
+        `https://gift.truemoney.com/v2/giftcards/${voucherCode}/redeem`
+      ];
 
       let resData = null;
+      let lastErrorStatus = null;
 
-      try {
-        const args = [
-          '-s',
-          '-X', 'POST',
-          url,
-          '-H', 'Content-Type: application/json',
-          '-H', 'Accept: application/json',
-          '-H', 'Origin: https://gift.truemoney.com',
-          '-H', `Referer: https://gift.truemoney.com/campaign/?v=${voucherCode}`,
-          '-A', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-          '-d', bodyJson,
-          '--max-time', '15'
-        ];
-
-        const { stdout } = await execFileAsync('curl.exe', args);
-        if (stdout && stdout.trim().startsWith('{')) {
-          resData = JSON.parse(stdout);
+      // Helper function to call TrueMoney via curl or fallback
+      const callApi = async (url) => {
+        try {
+          const args = [
+            '-s',
+            '-X', 'POST',
+            url,
+            '-H', 'Content-Type: application/json',
+            '-H', 'Accept: application/json',
+            '-H', 'Origin: https://gift.truemoney.com',
+            '-H', `Referer: https://gift.truemoney.com/campaign/?v=${voucherCode}`,
+            '-A', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            '-d', bodyJson,
+            '--max-time', '15'
+          ];
+          const { stdout } = await execFileAsync(curlBin, args);
+          if (stdout && stdout.trim().startsWith('{')) {
+            return JSON.parse(stdout.trim());
+          }
+        } catch (curlErr) {
+          console.warn(`[TrueMoney] ${curlBin} failed on ${url}:`, curlErr.message);
         }
-      } catch (curlErr) {
-        console.warn("curl.exe error, trying fallback fetch:", curlErr.message);
-      }
 
-      // Fallback to fetch if curl was not available
-      if (!resData) {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Origin': 'https://gift.truemoney.com',
-            'Referer': `https://gift.truemoney.com/campaign/?v=${voucherCode}`,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
-          },
-          body: bodyJson,
-          signal: AbortSignal.timeout(10000)
-        });
-        resData = await response.json();
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Origin': 'https://gift.truemoney.com',
+              'Referer': `https://gift.truemoney.com/campaign/?v=${voucherCode}`,
+              'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+            },
+            body: bodyJson,
+            signal: AbortSignal.timeout(10000)
+          });
+          const text = await response.text();
+          if (text && text.trim().startsWith('{')) {
+            return JSON.parse(text.trim());
+          }
+        } catch (fetchErr) {
+          console.warn(`[TrueMoney] fetch failed on ${url}:`, fetchErr.message);
+        }
+        return null;
+      };
+
+      for (const ep of endpoints) {
+        resData = await callApi(ep);
+        if (resData?.status?.code === 'SUCCESS') break;
+        if (resData?.status?.code) {
+          lastErrorStatus = resData.status.code;
+        }
       }
 
       if (resData?.status?.code === 'SUCCESS') {
@@ -148,32 +167,68 @@ router.post('/truemoney-gift', async (req, res) => {
         } else if (resData.data?.voucher?.amount_baht) {
           amount = parseFloat(resData.data.voucher.amount_baht);
         }
-      } else if (resData?.status?.code) {
-        const code = resData.status.code;
-        if (code === 'VOUCHER_OUT_OF_STOCK') {
-          return res.status(400).json({ error: "ซองของขวัญนี้หมดแล้ว หรือมีคนกดรับไปแล้ว" });
-        } else if (code === 'VOUCHER_EXPIRED') {
-          return res.status(400).json({ error: "ซองของขวัญนี้หมดอายุแล้ว (อายุซอง 72 ชั่วโมง)" });
-        } else if (code === 'TARGET_USER_REDEEMED') {
-          return res.status(400).json({ error: "เบอร์ผู้รับนี้เคยกดรับซองนี้ไปแล้ว" });
-        } else if (code === 'CANNOT_GET_OWN_VOUCHER') {
-          return res.status(400).json({ error: "ไม่สามารถกดรับซองของขวัญของตนเองได้ (ผู้สร้างซองและผู้รับเป็นเบอร์เดียวกัน กรุณาใช้บัญชี TrueMoney อื่นในการสร้างซอง)" });
-        } else if (code === 'VOUCHER_NOT_FOUND') {
-          return res.status(400).json({ error: "ไม่พบข้อมูลซองของขวัญนี้ในระบบ TrueMoney กรุณาตรวจสอบลิงก์อีกครั้ง" });
-        } else {
-          return res.status(400).json({ error: resData.status.message || "การแลกซองของขวัญไม่สำเร็จ" });
-        }
-      }
-        } catch (apiErr) {
-          console.warn("TrueMoney API error:", apiErr.message);
-        }
-      }
+      } else {
+        // Smart Check: If TrueMoney returned TARGET_USER_REDEEMED or VOUCHER_OUT_OF_STOCK,
+        // verify if the owner's phone (086-371-4416) actually claimed this voucher!
+        try {
+          const verifyArgs = [
+            '-s',
+            '-X', 'GET',
+            `https://gift.truemoney.com/campaign/vouchers/${voucherCode}/verify`,
+            '-H', 'Accept: application/json',
+            '-H', 'Origin: https://gift.truemoney.com',
+            '-H', `Referer: https://gift.truemoney.com/campaign/?v=${voucherCode}`,
+            '-A', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            '--max-time', '10'
+          ];
+          const { stdout: vOut } = await execFileAsync(curlBin, verifyArgs);
+          if (vOut && vOut.trim().startsWith('{')) {
+            const vData = JSON.parse(vOut.trim());
+            const tickets = vData.data?.tickets || [];
+            const cleanPhone = receiverPhone.replace(/[^0-9]/g, '');
+            const maskedPhone = cleanPhone.slice(0, 3) + '-xxx-' + cleanPhone.slice(-4);
 
-      if (!redeemedSuccessfully) {
-        return res.status(400).json({ 
-          error: "ไม่สามารถแลกซองของขวัญได้ ซองอาจหมดอายุ มีคนรับไปแล้ว หรือลิงก์ไม่ถูกต้อง" 
-        });
+            const matchedTicket = tickets.find(t => 
+              t.mobile === maskedPhone || 
+              t.mobile?.replace(/[^0-9]/g, '') === cleanPhone ||
+              (t.full_name && t.full_name.includes('ภูวนาท'))
+            );
+
+            if (matchedTicket) {
+              amount = parseFloat(matchedTicket.amount_baht || vData.data?.voucher?.amount_baht || 0);
+              if (amount > 0) {
+                redeemedSuccessfully = true;
+                console.log(`[TrueMoney] Voucher ${voucherCode} verified as already received by ${maskedPhone}: ฿${amount}`);
+              }
+            }
+          }
+        } catch (vErr) {
+          console.warn("[TrueMoney] Verify check error:", vErr.message);
+        }
+
+        if (!redeemedSuccessfully) {
+          if (lastErrorStatus === 'CANNOT_GET_OWN_VOUCHER') {
+            return res.status(400).json({ error: "ไม่สามารถรับซองของตนเองได้ (ซองนี้สร้างจากเบอร์ 086-371-4416 ซึ่งเป็นเบอร์รับเงิน ต้องใช้เบอร์ TrueMoney อื่นสร้างซองเพื่อทดสอบครับ)" });
+          } else if (lastErrorStatus === 'VOUCHER_OUT_OF_STOCK') {
+            return res.status(400).json({ error: "ซองของขวัญนี้ถูกผู้อื่นรับไปแล้ว หรือไม่มีสิทธิ์รับซองนี้" });
+          } else if (lastErrorStatus === 'VOUCHER_EXPIRED') {
+            return res.status(400).json({ error: "ซองของขวัญนี้หมดอายุแล้ว (อายุซอง 72 ชั่วโมง)" });
+          } else if (lastErrorStatus === 'TARGET_USER_REDEEMED') {
+            return res.status(400).json({ error: "เบอร์ผู้รับ (086-371-4416) ได้รับเงินจากซองของขวัญนี้ไปก่อนแล้ว" });
+          } else if (lastErrorStatus === 'VOUCHER_NOT_FOUND') {
+            return res.status(400).json({ error: "ไม่พบข้อมูลซองของขวัญนี้ในระบบ TrueMoney กรุณาตรวจสอบลิงก์อีกครั้ง" });
+          } else if (resData?.status?.message) {
+            return res.status(400).json({ error: resData.status.message });
+          }
+        }
       }
+    }
+
+    if (!redeemedSuccessfully || amount <= 0) {
+      return res.status(400).json({ 
+        error: "ไม่สามารถแลกซองของขวัญได้ ซองอาจหมดอายุ มีคนรับไปแล้ว หรือลิงก์ไม่ถูกต้อง" 
+      });
+    }
 
     const cleanSenderName = (senderName || 'ผู้ไม่ประสงค์ออกนาม').trim().slice(0, 100);
     const cleanMessage = (message || '').trim().slice(0, 255);

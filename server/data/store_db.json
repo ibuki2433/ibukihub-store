@@ -8,7 +8,7 @@
     "stats": {
       "itemsAvailable": 3,
       "totalSalesBath": 14544,
-      "totalMembers": 3,
+      "totalMembers": 4,
       "totalSold": 76
     },
     "emailGateway": {
@@ -52,7 +52,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 721,
+      "balance": 741,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -671,6 +671,21 @@
     }
   ],
   "topups": [
+    {
+      "id": "TOP-11047",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "amount": 20,
+      "channel": "TrueMoney Gift 🎁 (ส่งซองของขวัญ)",
+      "status": "approved",
+      "slipUrl": null,
+      "transRef": null,
+      "provider": null,
+      "senderName": "Dream",
+      "message": "กินข้าวยัง",
+      "createdAt": "2026-09-16T13:03:53.233Z",
+      "voucherCode": "01a0aa4a0513775b19a28ec5629cf0add0C"
+    },
     {
       "id": "TOP-73156",
       "userId": "usr_jvdf3ufay",
