@@ -91,7 +91,7 @@ export default function RedeemCodeModal({ onClose, onOpenAuth }) {
             <Gift className="w-7 h-7" />
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-white tracking-wide flex items-center justify-center gap-2">
-            <span>ใส่โค้ดรับเงินฟรี</span>
+            <span>ใส่โค้ดโปรโมชั่น</span>
             <Sparkles className="w-5 h-5 text-amber-400" />
           </h3>
           <p className="text-xs sm:text-sm text-purple-200/80 mt-1">

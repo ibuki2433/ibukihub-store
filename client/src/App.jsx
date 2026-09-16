@@ -203,7 +203,7 @@ function StoreMain() {
     <div className="min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white">
       
       {/* Announcement Marquee Bar */}
-      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-4 border-b border-purple-900/30 overflow-hidden flex items-center justify-between gap-2">
+      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-4 border-b border-purple-900/30 overflow-hidden flex items-center gap-2">
         <div className="flex items-center gap-2 overflow-hidden flex-1">
           <div className="flex items-center gap-1 font-semibold text-purple-300 shrink-0">
             <Bell className="w-3.5 h-3.5 text-purple-400" />
@@ -215,15 +215,6 @@ function StoreMain() {
             </span>
           </div>
         </div>
-
-        {/* Quick Promo Code Badge */}
-        <button
-          onClick={() => setIsRedeemOpen(true)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-orange-500/25 to-amber-500/25 hover:from-amber-500/40 hover:to-orange-500/40 border border-amber-400/50 text-amber-300 hover:text-white text-[11px] font-bold transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95 cursor-pointer"
-          title="คลิกเพื่อใส่โค้ดรับเงินฟรี"
-        >
-          <span>🎁 ใส่โค้ดรับเงินฟรี</span>
-        </button>
       </div>
 
       {/* Top Navbar */}

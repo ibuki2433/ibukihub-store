@@ -323,7 +323,7 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-neutral-950 font-extrabold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                   >
                     <Gift className="w-4 h-4 text-neutral-950" />
-                    <span>{loading ? "กำลังตรวจสอบ..." : "แลกรับเงินฟรีเข้ากระเป๋า"}</span>
+                    <span>{loading ? "กำลังตรวจสอบ..." : "แลกรับยอดเงินเข้ากระเป๋า"}</span>
                   </button>
                 </>
               )}

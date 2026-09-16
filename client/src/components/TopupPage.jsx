@@ -830,7 +830,7 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                 
                 <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-900/40 border border-amber-400/40 text-xs font-semibold text-amber-200 shadow-sm">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>รับเงินฟรีเข้ากระเป๋าทันทีเมื่อกรอกโค้ด</span>
+                  <span>รับยอดเงินเข้ากระเป๋าทันทีเมื่อกรอกโค้ด</span>
                 </div>
 
                 <p className="text-xs sm:text-sm text-purple-200/90 font-medium max-w-lg mx-auto">
@@ -886,7 +886,7 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                   ) : (
                     <>
                       <Gift className="w-5 h-5 text-neutral-950" />
-                      <span>แลกรับเงินฟรีเข้ากระเป๋าทันที</span>
+                      <span>แลกรับยอดเงินเข้ากระเป๋าทันที</span>
                     </>
                   )}
                 </button>

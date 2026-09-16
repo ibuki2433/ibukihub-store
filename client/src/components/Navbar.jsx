@@ -268,7 +268,7 @@ export default function Navbar({
             <button
               onClick={onOpenRedeem}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-neutral-950 shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all hover:scale-[1.03] active:scale-95 cursor-pointer"
-              title="ใส่โค้ดรับเงินฟรี"
+              title="ใส่โค้ดโปรโมชั่น"
             >
               <Gift className="w-3.5 h-3.5 text-neutral-950 shrink-0" />
               <span>ใส่โค้ด</span>
@@ -346,7 +346,7 @@ export default function Navbar({
                       className="w-full text-left px-3.5 py-2 hover:bg-amber-950/30 text-amber-300 flex items-center gap-2 font-semibold"
                     >
                       <Gift className="w-4 h-4 text-amber-400" />
-                      <span>ใส่โค้ดรับเงินฟรี (+฿50)</span>
+                      <span>ใส่โค้ดโปรโมชั่น</span>
                     </button>
 
                     {user.role === 'admin' && (
