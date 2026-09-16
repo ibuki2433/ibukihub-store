@@ -60,7 +60,9 @@ router.all('/:orderId', (req, res) => {
           });
         }
       }
-      return res.status(404).send("<h1>404 ไม่พบไฟล์ Ibuki FB AutoPoster Pro_v1.0_Portable.zip ในระบบ</h1>");
+      
+      // Cloud Release CDN fallback (Render production)
+      return res.redirect('https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip');
     }
 
     // 1. Check local file candidates (user Downloads folder or server downloads directory)
@@ -146,7 +148,10 @@ router.all('/file/:fileName', (req, res) => {
 
     const cdnMap = {
       'IbukiDownload_v2.2_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.2_Portable.zip',
-      'IbukiDownload_v2.5_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip'
+      'IbukiDownload_v2.5_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip',
+      'Ibuki FB AutoPoster Pro_v1.0_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip',
+      'Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip',
+      'Ibuki FB AutoPoster Pro.exe': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip'
     };
 
     if (cdnMap[fileName]) {
