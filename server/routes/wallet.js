@@ -55,15 +55,13 @@ function extractVoucherCode(input) {
   return null;
 }
 
-// 1. Redeem TrueMoney Gift Voucher (Matching ibuki-channel)
-router.post('/truemoney-gift', async (req, res) => {
+// 1. Redeem TrueMoney Gift Voucher (Matching both store & ibuki-channel)
+router.post(['/truemoney-gift', '/donate'], async (req, res) => {
   try {
-    const { voucherUrl, senderName, message } = req.body;
-    const userId = req.headers['x-user-id'];
-
-    if (!userId) {
-      return res.status(401).json({ error: "กรุณาเข้าสู่ระบบก่อนทำรายการเติมเงิน" });
-    }
+    const voucherUrl = req.body.voucherUrl || req.body.gift_url || req.body.giftUrl;
+    const senderName = req.body.senderName || req.body.donorName || req.body.sender_name || req.body.donor_name || 'ผู้สนับสนุนช่อง';
+    const message = req.body.message || '';
+    const userId = req.headers['x-user-id'] || 'usr_admin_ibuki';
 
     if (!voucherUrl) {
       return res.status(400).json({ error: "กรุณากรอกลิงก์ซองของขวัญ TrueMoney Wallet" });
@@ -248,6 +246,11 @@ router.post('/truemoney-gift', async (req, res) => {
     res.json({
       success: true,
       message: `แลกซองของขวัญสำเร็จ! ได้รับเครดิต ฿ ${amount.toLocaleString()} เรียบร้อยแล้ว`,
+      data: {
+        donorName: cleanSenderName,
+        message: cleanMessage,
+        amount: amount
+      },
       topup: result.topup,
       newBalance: result.newBalance
     });

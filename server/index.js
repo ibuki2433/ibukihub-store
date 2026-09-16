@@ -54,6 +54,64 @@ app.use('/api/admin', adminRouter);
 app.use('/api/verify', verifyRouter);
 app.use('/api/licenses/verify', verifyRouter);
 
+// TrueMoney Donation Compatibility (ibuki-channel & truemoney-backend)
+app.post('/api/donate', (req, res, next) => {
+  req.url = '/donate';
+  walletRouter(req, res, next);
+});
+
+app.get('/api/stats', (req, res) => {
+  const allTopups = db.getAllTopups();
+  const giftTopups = allTopups.filter(t => t.channel && t.channel.includes('Gift'));
+  const sum = giftTopups.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const count = giftTopups.length;
+  const target = 10000;
+  const pct = target > 0 ? Math.min(Math.round((sum / target) * 1000) / 10, 100) : 0;
+  res.json({
+    success: true,
+    data: { total_amount: sum, total_count: count, target_amount: target, percentage: pct }
+  });
+});
+
+app.get('/api/recent-donations', (req, res) => {
+  const allTopups = db.getAllTopups();
+  const giftTopups = allTopups.filter(t => t.channel && t.channel.includes('Gift'));
+  const recent = giftTopups.slice(0, 10).map(d => ({
+    donor_name: d.senderName || d.username || 'ผู้ไม่ประสงค์ออกนาม',
+    message: d.message || '',
+    amount: d.amount,
+    created_at: d.createdAt
+  }));
+  res.json({ success: true, data: recent });
+});
+
+app.get('/api/leaderboard', (req, res) => {
+  const allTopups = db.getAllTopups();
+  const giftTopups = allTopups.filter(t => t.channel && t.channel.includes('Gift'));
+  const donorMap = {};
+  giftTopups.forEach(item => {
+    const name = (item.senderName || item.username || 'ผู้ไม่ประสงค์ออกนาม').trim();
+    const amt = parseFloat(item.amount) || 0;
+    if (!donorMap[name]) {
+      donorMap[name] = { donor_name: name, total_amount: 0, count: 0 };
+    }
+    donorMap[name].total_amount += amt;
+    donorMap[name].count += 1;
+  });
+  const leaderboard = Object.values(donorMap)
+    .sort((a, b) => b.total_amount - a.total_amount)
+    .slice(0, 5);
+  res.json({ success: true, data: leaderboard });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mode: 'store-integrated',
+    receiver_phone: '086****416'
+  });
+});
+
 // Public settings & live stats
 app.get('/api/settings', (req, res) => {
   res.json({
