@@ -26,7 +26,6 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
   const [customAmount, setCustomAmount] = useState('');
   const [voucherUrl, setVoucherUrl] = useState('');
   const [message, setMessage] = useState('');
-  const [giftCode, setGiftCode] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
@@ -168,64 +167,6 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
     }
   };
 
-  // Submit handler for Promo / Gift Code Redemption
-  const handleGiftCodeSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      if (onOpenAuth) onOpenAuth('signin');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (!giftCode || !giftCode.trim()) {
-        throw new Error("กรุณากรอกโค้ดของขวัญ");
-      }
-
-      const res = await fetch('/api/wallet/redeem-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user.id
-        },
-        body: JSON.stringify({
-          code: giftCode.trim()
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "การแลกโค้ดไม่สำเร็จ");
-
-      updateBalance(data.newBalance);
-      setSuccessData({
-        amount: data.rewardAmount,
-        channel: `🎁 โค้ดของขวัญ (${data.code})`,
-        id: "GIFT-" + Math.floor(100000 + Math.random() * 900000),
-        newBalance: data.newBalance,
-        senderName: "ระบบของขวัญ IbukiHub",
-        message: data.message || `ยินดีด้วย! คุณได้รับเงิน ฿${data.rewardAmount} เข้ากระเป๋าเรียบร้อยแล้ว`,
-        date: new Date().toLocaleString('th-TH')
-      });
-
-      setGiftCode('');
-
-      try {
-        confetti({
-          particleCount: 150,
-          spread: 90,
-          origin: { y: 0.6 }
-        });
-      } catch (e) {}
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedPromptPay(true);
@@ -269,8 +210,8 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
           </p>
         </div>
 
-        {/* 3 MAIN PAYMENT CARDS (Purple & Amber Theme) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
+        {/* 2 MAIN PAYMENT CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-12 mx-auto">
           
           {/* ================= CARD 1: QR CODE ================= */}
           <div 
@@ -383,59 +324,6 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                   : 'bg-purple-950/70 text-purple-300 group-hover:bg-purple-900/60'
               }`}>
                 {selectedMethod === 'truewallet' ? (t('topupSelected') || 'เลือกอยู่') : (t('topupClickToSelect') || 'คลิกเพื่อเลือก')}
-              </span>
-            </div>
-          </div>
-
-
-          {/* ================= CARD 3: GIFT CODE ================= */}
-          <div 
-            onClick={() => handleSelectMethod('giftcode')}
-            className={`relative rounded-[28px] p-6 text-center transition-all duration-300 cursor-pointer group select-none ${
-              selectedMethod === 'giftcode'
-                ? 'bg-[#1b1435] border-[3.5px] border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.6)] scale-[1.03]'
-                : 'bg-[#140e28]/90 hover:bg-[#1a1333] border-[3px] border-amber-500/40 shadow-[0_0_30px_rgba(251,191,36,0.2)] hover:shadow-[0_0_45px_rgba(251,191,36,0.4)] hover:scale-[1.02]'
-            }`}
-          >
-            {/* Top Badge: "FREE BONUS" */}
-            <div className="absolute -top-3.5 left-6 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white text-xs sm:text-sm font-black italic px-4 py-0.5 rounded-md tracking-wider uppercase shadow-md animate-pulse">
-              🎁 FREE BONUS
-            </div>
-
-            {/* Inner White Container */}
-            <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 rounded-2xl p-3 flex items-center justify-center gap-3 h-24 sm:h-28 shadow-md mt-2 mx-auto w-full transition-transform group-hover:scale-105 duration-300 text-white">
-              <Gift className="w-12 h-12 text-white drop-shadow-md" />
-              <div className="text-left font-sans leading-tight">
-                <div className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  Gift Code
-                </div>
-                <div className="text-[10px] sm:text-[11px] font-bold text-amber-100 tracking-[0.2em] uppercase">
-                  โค้ดของขวัญ
-                </div>
-              </div>
-            </div>
-
-            {/* Title & Subtitle */}
-            <div className="mt-5 space-y-1">
-              <h3 className="text-xl sm:text-2xl font-bold text-amber-300 tracking-wide flex items-center justify-center gap-1.5">
-                <span>โค้ดของขวัญ</span>
-                <Sparkles className="w-5 h-5 text-amber-400" />
-              </h3>
-              <p className="text-xs sm:text-sm text-purple-200/80">
-                กรอกโค้ดรับเครดิตเงินฟรีเข้ากระเป๋า
-              </p>
-              <p className="text-xs text-amber-300 font-bold pt-1">
-                ฟรี 100% (รับเงินทันที)
-              </p>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-purple-500/20">
-              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-4 py-1.5 rounded-full transition-all ${
-                selectedMethod === 'giftcode'
-                  ? 'bg-amber-500 text-neutral-950 font-bold shadow-md'
-                  : 'bg-purple-950/70 text-purple-300 group-hover:bg-purple-900/60'
-              }`}>
-                {selectedMethod === 'giftcode' ? 'เลือกอยู่' : 'คลิกเพื่อเลือก'}
               </span>
             </div>
           </div>
@@ -818,82 +706,6 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
             </div>
           )}
 
-
-          {/* ================= SECTION C: GIFT CODE REDEEM ================= */}
-          {selectedMethod === 'giftcode' && !successData && (
-            <div className="w-full p-6 sm:p-10 rounded-[36px] bg-[#140e28]/95 border-2 border-amber-500/40 shadow-[0_0_60px_rgba(251,191,36,0.25)] space-y-8 animate-in fade-in duration-300">
-              
-              <div className="text-center space-y-3">
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-pink-300 drop-shadow-[0_2px_12px_rgba(251,191,36,0.5)]">
-                  แลกโค้ดของขวัญ / Promo Code
-                </h2>
-                
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-900/40 border border-amber-400/40 text-xs font-semibold text-amber-200 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>รับยอดเงินเข้ากระเป๋าทันทีเมื่อกรอกโค้ด</span>
-                </div>
-
-                <p className="text-xs sm:text-sm text-purple-200/90 font-medium max-w-lg mx-auto">
-                  ใส่โค้ดของขวัญเพื่อรับยอดเงินเครดิตเข้ากระเป๋าสำหรับชำระค่าซอฟต์แวร์เดสก์ท็อปในร้าน IbukiHub ได้ทันที (เงินเข้าทันทีอัตโนมัติ)
-                </p>
-              </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="p-3.5 rounded-2xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs sm:text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Redeem Form */}
-              <form onSubmit={handleGiftCodeSubmit} className="space-y-5">
-                <div className="space-y-2 text-left">
-                  <label className="text-xs font-bold text-purple-200 flex items-center gap-1">
-                    <span>กรอกโค้ดของขวัญ (Promo Code):</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      placeholder="พิมพ์โค้ดของขวัญที่นี่..."
-                      value={giftCode}
-                      onChange={(e) => setGiftCode(e.target.value)}
-                      className="w-full bg-[#1b1435] border-2 border-purple-500/40 focus:border-amber-400 text-amber-200 font-mono font-bold tracking-wider rounded-2xl px-4 py-3.5 text-base sm:text-lg focus:outline-none transition-colors shadow-inner placeholder:font-normal placeholder:tracking-normal placeholder:text-purple-300/40"
-                    />
-                    {giftCode && (
-                      <button
-                        type="button"
-                        onClick={() => setGiftCode('')}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white text-xs bg-purple-900/60 p-1.5 rounded-lg"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading || !giftCode.trim()}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-neutral-950 font-black text-base shadow-[0_6px_30px_rgba(251,191,36,0.4)] transition-all active:scale-[0.99] flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      <span>กำลังตรวจสอบโค้ด...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Gift className="w-5 h-5 text-neutral-950" />
-                      <span>แลกรับยอดเงินเข้ากระเป๋าทันที</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-            </div>
-          )}
 
         </div>
 

@@ -42,7 +42,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 341,
+      "balance": 391,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -338,7 +338,7 @@
       "productId": "prod_ibuki_22",
       "productName": "IbukiDownload V.2.2",
       "planId": null,
-      "planName": "ซื้อสิทธิ���ถาวร (ตลอดชีพ)",
+      "planName": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
       "planCode": "VIP",
       "durationDays": 99999,
       "isLifetime": true,
@@ -382,6 +382,15 @@
       "channel": "แอดมินเพิ่มเงิน +฿300",
       "status": "approved",
       "createdAt": "2026-09-15T20:42:29.475Z"
+    },
+    {
+      "id": "TOP-CODE-61791",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "amount": 50,
+      "channel": "🎁 โค้ดของขวัญ (IbukiCh)",
+      "status": "approved",
+      "createdAt": "2026-09-16T05:03:33.874Z"
     }
   ],
   "promoCodes": [
@@ -391,11 +400,20 @@
       "rewardAmount": 50,
       "description": "โค้ดของขวัญต้อนรับสมาชิก IbukiHub รับเงิน 50 บาทฟรี",
       "maxUses": 999999,
-      "usedCount": 0,
+      "usedCount": 1,
       "active": true,
       "createdAt": "2026-09-15T00:00:00.000Z",
       "expiresAt": null
     }
   ],
-  "redeemHistory": []
+  "redeemHistory": [
+    {
+      "id": "RED-777868",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "code": "IbukiCh",
+      "rewardAmount": 50,
+      "redeemedAt": "2026-09-16T05:03:33.874Z"
+    }
+  ]
 }
