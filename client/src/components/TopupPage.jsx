@@ -746,18 +746,18 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">เลขบัญชี / พร้อมเพย์:</span>
-                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '209-7-15543-2'}</span>
+                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '156-8-83147-7'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">ธนาคาร:</span>
-                        <span className="font-bold text-gray-800">{promptpayInfo?.bankName || 'ธนาคารทหารไทยธนชาต (TTB)'}</span>
+                        <span className="font-bold text-gray-800">{promptpayInfo?.bankName || 'ธนาคารกสิกรไทย (KBANK)'}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(promptpayInfo?.number || '209-7-15543-2')}
+                        onClick={() => copyToClipboard(promptpayInfo?.number || '156-8-83147-7')}
                         className="px-3.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
                       >
                         {copiedPromptPay ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}

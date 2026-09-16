@@ -48,9 +48,10 @@ export function generatePromptPayPayload(target, amount = null) {
     // e-Wallet ID
     formattedTarget = formatTag('03', cleanTarget);
   } else if (cleanTarget.length === 10) {
-    // 10-digit Bank Account Number (e.g. TTB: 011 + account number)
-    // Default to TTB (011) if starting with 209 or generic bank tag
-    const bankCode = cleanTarget.startsWith('209') ? '011' : '011';
+    // 10-digit Bank Account Number (e.g. KBANK: 004, TTB: 011, SCB: 014, BBL: 002)
+    let bankCode = '004'; // Default to KBANK (Kasikornbank)
+    if (cleanTarget.startsWith('209')) bankCode = '011'; // TTB
+    else if (cleanTarget.startsWith('156')) bankCode = '004'; // KBANK
     formattedTarget = formatTag('04', (bankCode + cleanTarget).padStart(13, '0'));
   } else {
     // Generic fallback

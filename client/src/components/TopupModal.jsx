@@ -318,7 +318,7 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                       <div className="flex items-center justify-between">
                         <span className="text-neutral-500 text-[11px]">เลขบัญชี / พร้อมเพย์:</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-bold text-neutral-900">{promptpayInfo?.number || '209-7-15543-2'}</span>
+                          <span className="font-mono font-bold text-neutral-900">{promptpayInfo?.number || '156-8-83147-7'}</span>
                           <button
                             type="button"
                             onClick={handleCopyPromptPay}
@@ -337,7 +337,7 @@ export default function TopupModal({ onClose, onOpenAuth }) {
 
                       <div className="flex items-center justify-between">
                         <span className="text-neutral-500 text-[11px]">ธนาคาร:</span>
-                        <span className="font-bold text-neutral-800">{promptpayInfo?.bankName || 'ธนาคารทหารไทยธนชาต (TTB)'}</span>
+                        <span className="font-bold text-neutral-800">{promptpayInfo?.bankName || 'ธนาคารกสิกรไทย (KBANK)'}</span>
                       </div>
                     </div>
                   </div>

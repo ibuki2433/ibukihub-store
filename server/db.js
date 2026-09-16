@@ -35,9 +35,9 @@ const INITIAL_DATA = {
     },
     promptpay: {
       enabled: true,
-      number: "209-7-15543-2",
+      number: "156-8-83147-7",
       accountName: "ภูวนาท เมธาวงศ์วณิช",
-      bankName: "ธนาคารทหารไทยธนชาต (TTB)",
+      bankName: "ธนาคารกสิกรไทย (KBANK)",
       slipokApiKey: "",
       slipokBranchId: "",
       autoApprove: true
