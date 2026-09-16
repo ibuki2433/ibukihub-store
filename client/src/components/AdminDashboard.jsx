@@ -27,7 +27,8 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     slipokBranchId: '',
     easyslipApiKey: '',
     autoApprove: true,
-    enabled: true
+    enabled: true,
+    customQrUrl: ''
   });
   const [savingPromptPay, setSavingPromptPay] = useState(false);
   const [processingSlipId, setProcessingSlipId] = useState(null);
@@ -164,7 +165,8 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
           slipokBranchId: dataPP.promptpay.slipokBranchId || '',
           easyslipApiKey: dataPP.promptpay.easyslipApiKey || '',
           autoApprove: dataPP.promptpay.autoApprove !== undefined ? dataPP.promptpay.autoApprove : true,
-          enabled: dataPP.promptpay.enabled !== undefined ? dataPP.promptpay.enabled : true
+          enabled: dataPP.promptpay.enabled !== undefined ? dataPP.promptpay.enabled : true,
+          customQrUrl: dataPP.promptpay.customQrUrl || ''
         }));
       }
 
@@ -651,6 +653,27 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
     }
   };
 
+  const handleUploadCustomQr = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('qrImage', file);
+    try {
+      const res = await fetch('/api/admin/upload-qr', {
+        method: 'POST',
+        headers: { 'x-user-id': user.id },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setPromptpayConfig(prev => ({ ...prev, customQrUrl: data.qrUrl }));
+      setMsg('อัปโหลดรูปภาพ QR Code สำเร็จแล้ว');
+      fetchAllAdminData();
+    } catch (err) {
+      setErr('อัปโหลด QR Code ไม่สำเร็จ: ' + err.message);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
       
@@ -886,6 +909,46 @@ export default function AdminDashboard({ onClose, onProductUpdated }) {
                         className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400"
                       />
                       <span className="text-[10px] text-purple-300/60 block mt-1">ธนาคารเจ้าของเบอร์หรือบัญชี</span>
+                    </div>
+                  </div>
+
+                  {/* Custom Bank QR Image Upload */}
+                  <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-2.5">
+                    <label className="block text-purple-200 font-semibold text-xs flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-purple-400" />
+                      <span>รูปภาพ QR Code รับเงิน (เช่น เซฟ/แคปจากแอป K PLUS หรือ PromptPay ของคุณ):</span>
+                    </label>
+                    <p className="text-[11px] text-purple-300/70 leading-relaxed">
+                      💡 <strong>แนะนำ:</strong> หากคุณมีรูปภาพ QR Code รับเงินที่แคปจากแอป K PLUS ของคุณโดยตรง สามารถอัปโหลดได้ที่นี่ เพื่อให้ลูกค้าสามารถสแกนจ่ายได้ 100%
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                      {promptpayConfig.customQrUrl ? (
+                        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/60 border border-purple-500/40">
+                          <img src={promptpayConfig.customQrUrl} alt="Custom QR" className="w-16 h-16 object-contain rounded-lg bg-white p-1" />
+                          <div className="text-xs space-y-1">
+                            <span className="text-emerald-400 font-bold block">✓ ใช้งานรูป QR Code ของคุณอยู่</span>
+                            <button
+                              type="button"
+                              onClick={() => setPromptpayConfig({ ...promptpayConfig, customQrUrl: '' })}
+                              className="text-red-400 hover:text-red-300 text-[11px] underline cursor-pointer"
+                            >
+                              ลบและใช้ระบบสร้าง QR Code อัตโนมัติ
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <label className="px-4 py-2.5 rounded-xl bg-purple-800/80 hover:bg-purple-700 text-white font-bold text-xs border border-purple-400/40 cursor-pointer flex items-center gap-2 transition-all shadow-md active:scale-95">
+                        <Upload className="w-4 h-4" />
+                        <span>{promptpayConfig.customQrUrl ? 'เปลี่ยนรูป QR Code ใหม่' : 'อัปโหลดรูป QR Code จากแอป K PLUS'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadCustomQr}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
                   </div>
 

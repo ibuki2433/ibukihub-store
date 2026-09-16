@@ -729,7 +729,7 @@ router.post('/slips/:id/reject', requireAdmin, (req, res) => {
 // 4. Update PromptPay & SlipOK Configuration
 router.post('/settings/promptpay', requireAdmin, (req, res) => {
   try {
-    const { number, accountName, bankName, slipokApiKey, slipokBranchId, easyslipApiKey, autoApprove, enabled } = req.body;
+    const { number, accountName, bankName, slipokApiKey, slipokBranchId, easyslipApiKey, autoApprove, enabled, customQrUrl } = req.body;
     const settings = db.getSettings();
     if (!settings.promptpay) settings.promptpay = {};
 
@@ -741,11 +741,55 @@ router.post('/settings/promptpay', requireAdmin, (req, res) => {
     if (easyslipApiKey !== undefined) settings.promptpay.easyslipApiKey = String(easyslipApiKey).trim();
     if (autoApprove !== undefined) settings.promptpay.autoApprove = Boolean(autoApprove);
     if (enabled !== undefined) settings.promptpay.enabled = Boolean(enabled);
+    if (customQrUrl !== undefined) settings.promptpay.customQrUrl = customQrUrl;
 
     db.save();
     res.json({
       success: true,
       message: "บันทึกการตั้งค่าพร้อมเพย์และระบบตรวจสลิปเรียบร้อยแล้ว",
+      promptpay: settings.promptpay
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. Upload Custom QR Code Image (e.g. from K PLUS app)
+const qrStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.png';
+    cb(null, `bank_qr_${Date.now()}${ext}`);
+  }
+});
+const uploadQr = multer({
+  storage: qrStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (.jpg, .png, .jpeg, .webp)'));
+  }
+});
+
+router.post('/upload-qr', requireAdmin, uploadQr.single('qrImage'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'กรุณาเลือกไฟล์ภาพ QR Code' });
+    }
+    const qrUrl = `/uploads/${req.file.filename}`;
+    const settings = db.getSettings();
+    if (!settings.promptpay) settings.promptpay = {};
+    settings.promptpay.customQrUrl = qrUrl;
+    db.save();
+
+    res.json({
+      success: true,
+      message: 'อัปโหลดรูปภาพ QR Code สำเร็จแล้ว',
+      qrUrl,
       promptpay: settings.promptpay
     });
   } catch (err) {

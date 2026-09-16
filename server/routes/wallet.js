@@ -257,18 +257,21 @@ router.get('/promptpay-info', (req, res) => {
     const settings = db.getSettings();
     const promptpay = settings?.promptpay || {};
     const amount = req.query.amount ? parseFloat(req.query.amount) : null;
-    const targetNumber = promptpay.number || '0800002003';
+    const targetNumber = promptpay.number || '156-8-83147-7';
     const qrPayload = generatePromptPayPayload(targetNumber, amount);
+
+    const qrImageUrl = promptpay.customQrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}`;
 
     res.json({
       success: true,
       promptpay: {
         enabled: promptpay.enabled !== false,
         number: targetNumber,
-        accountName: promptpay.accountName || 'Ibuki Store',
-        bankName: promptpay.bankName || 'พร้อมเพย์ (PromptPay)',
+        accountName: promptpay.accountName || 'ภูวนาท เมธาวงศ์วณิช',
+        bankName: promptpay.bankName || 'ธนาคารกสิกรไทย (KBANK)',
+        customQrUrl: promptpay.customQrUrl || null,
         qrPayload,
-        qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrPayload)}`
+        qrImageUrl
       }
     });
   } catch (err) {
