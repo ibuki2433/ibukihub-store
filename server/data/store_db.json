@@ -21,6 +21,15 @@
       "fromName": "IbukiHub Store",
       "host": "smtp.gmail.com",
       "port": 465
+    },
+    "promptpay": {
+      "enabled": true,
+      "number": "209-7-15543-2",
+      "accountName": "ภูวนาท เมธาวงศ์วณิช",
+      "bankName": "ธนาคารทหารไทยธนชาต (TTB)",
+      "slipokApiKey": "",
+      "slipokBranchId": "",
+      "autoApprove": true
     }
   },
   "users": [
@@ -42,7 +51,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 391,
+      "balance": 491,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -356,6 +365,21 @@
     }
   ],
   "topups": [
+    {
+      "id": "TOP-73156",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "amount": 100,
+      "channel": "พร้อมเพย์ QR (แนบสลิป)",
+      "status": "approved",
+      "slipUrl": "/uploads/slips/slip_1789540050304_135.png",
+      "transRef": null,
+      "provider": null,
+      "senderName": "Dream",
+      "message": "รอแอดมินตรวจสอบสลิปและอนุมัติ",
+      "createdAt": "2026-09-16T06:27:30.312Z",
+      "approvedAt": "2026-09-16T06:27:30.324Z"
+    },
     {
       "id": "TOP-98119",
       "userId": "usr_admin_ibuki",

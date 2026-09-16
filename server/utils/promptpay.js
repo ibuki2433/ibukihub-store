@@ -37,15 +37,23 @@ export function generatePromptPayPayload(target, amount = null) {
 
   let formattedTarget = '';
 
-  if (cleanTarget.length === 10) {
+  if (cleanTarget.length === 10 && cleanTarget.startsWith('0')) {
     // Mobile phone number: 08x-xxx-xxxx -> 00668xxxxxxxx (13 chars)
     const internationalPhone = '0066' + cleanTarget.slice(1);
     formattedTarget = formatTag('01', internationalPhone.padStart(13, '0'));
   } else if (cleanTarget.length === 13) {
     // Citizen ID or Tax ID
     formattedTarget = formatTag('02', cleanTarget);
+  } else if (cleanTarget.length === 15) {
+    // e-Wallet ID
+    formattedTarget = formatTag('03', cleanTarget);
+  } else if (cleanTarget.length === 10) {
+    // 10-digit Bank Account Number (e.g. TTB: 011 + account number)
+    // Default to TTB (011) if starting with 209 or generic bank tag
+    const bankCode = cleanTarget.startsWith('209') ? '011' : '011';
+    formattedTarget = formatTag('04', (bankCode + cleanTarget).padStart(13, '0'));
   } else {
-    // Fallback
+    // Generic fallback
     formattedTarget = formatTag('01', cleanTarget.padStart(13, '0'));
   }
 

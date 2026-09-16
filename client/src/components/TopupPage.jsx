@@ -234,7 +234,8 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
+    const cleanNum = text.replace(/[^0-9]/g, '');
+    navigator.clipboard.writeText(cleanNum || text);
     setCopiedPromptPay(true);
     setTimeout(() => setCopiedPromptPay(false), 2000);
   };
@@ -744,23 +745,23 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                         <span className="font-bold text-gray-900">{promptpayInfo?.accountName || 'Ibuki Store (พร้อมเพย์)'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">เบอร์พร้อมเพย์:</span>
-                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '080-000-2003'}</span>
+                        <span className="text-gray-500">เลขบัญชี / พร้อมเพย์:</span>
+                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '209-7-15543-2'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">ธนาคาร:</span>
-                        <span className="font-medium text-gray-700">{promptpayInfo?.bankName || 'พร้อมเพย์ทุกธนาคาร'}</span>
+                        <span className="font-bold text-gray-800">{promptpayInfo?.bankName || 'ธนาคารทหารไทยธนชาต (TTB)'}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(promptpayInfo?.number || '0800002003')}
+                        onClick={() => copyToClipboard(promptpayInfo?.number || '209-7-15543-2')}
                         className="px-3.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
                       >
                         {copiedPromptPay ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedPromptPay ? 'คัดลอกเบอร์แล้ว' : 'คัดลอกเบอร์พร้อมเพย์'}</span>
+                        <span>{copiedPromptPay ? 'คัดลอกเลขบัญชีแล้ว' : 'คัดลอกเลขบัญชี'}</span>
                       </button>
                     </div>
 

@@ -64,7 +64,8 @@ export default function TopupModal({ onClose, onOpenAuth }) {
 
   const handleCopyPromptPay = () => {
     if (!promptpayInfo?.number) return;
-    navigator.clipboard.writeText(promptpayInfo.number);
+    const cleanNum = promptpayInfo.number.replace(/[^0-9]/g, '');
+    navigator.clipboard.writeText(cleanNum || promptpayInfo.number);
     setCopiedPromptPay(true);
     setTimeout(() => setCopiedPromptPay(false), 2000);
   };
@@ -315,9 +316,9 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                     {/* Account Details */}
                     <div className="w-full bg-neutral-50 rounded-xl p-2.5 border border-neutral-200 text-left text-xs space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 text-[11px]">หมายเลขพร้อมเพย์:</span>
+                        <span className="text-neutral-500 text-[11px]">เลขบัญชี / พร้อมเพย์:</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-bold text-neutral-900">{promptpayInfo?.number || '098-XXX-XXXX'}</span>
+                          <span className="font-mono font-bold text-neutral-900">{promptpayInfo?.number || '209-7-15543-2'}</span>
                           <button
                             type="button"
                             onClick={handleCopyPromptPay}
@@ -331,12 +332,12 @@ export default function TopupModal({ onClose, onOpenAuth }) {
 
                       <div className="flex items-center justify-between">
                         <span className="text-neutral-500 text-[11px]">ชื่อบัญชี:</span>
-                        <span className="font-bold text-neutral-800">{promptpayInfo?.accountName || 'IbukiHub Store'}</span>
+                        <span className="font-bold text-neutral-800">{promptpayInfo?.accountName || 'ภูวนาท เมธาวงศ์วณิช'}</span>
                       </div>
 
                       <div className="flex items-center justify-between">
                         <span className="text-neutral-500 text-[11px]">ธนาคาร:</span>
-                        <span className="font-medium text-neutral-700">{promptpayInfo?.bankName || 'พร้อมเพย์ (PromptPay)'}</span>
+                        <span className="font-bold text-neutral-800">{promptpayInfo?.bankName || 'ธนาคารทหารไทยธนชาต (TTB)'}</span>
                       </div>
                     </div>
                   </div>

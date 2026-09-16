@@ -35,9 +35,9 @@ const INITIAL_DATA = {
     },
     promptpay: {
       enabled: true,
-      number: "0800002003",
-      accountName: "Ibuki Store",
-      bankName: "พร้อมเพย์ (PromptPay)",
+      number: "209-7-15543-2",
+      accountName: "ภูวนาท เมธาวงศ์วณิช",
+      bankName: "ธนาคารทหารไทยธนชาต (TTB)",
       slipokApiKey: "",
       slipokBranchId: "",
       autoApprove: true
