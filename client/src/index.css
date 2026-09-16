@@ -5,8 +5,15 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
   }
   body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    position: relative;
     background-color: #0c0a12;
     background-image: 
       radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
@@ -17,6 +24,12 @@
     font-family: 'IBM Plex Sans Thai', 'Prompt', 'Inter', sans-serif;
     color: #ede9fe;
     letter-spacing: -0.01em;
+  }
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    min-height: 100vh;
   }
 }
 

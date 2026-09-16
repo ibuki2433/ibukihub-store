@@ -200,10 +200,10 @@ function StoreMain() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden flex flex-col justify-between selection:bg-purple-600 selection:text-white">
       
       {/* Announcement Marquee Bar */}
-      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-4 border-b border-purple-900/30 overflow-hidden flex items-center gap-2">
+      <div className="bg-[#120e24] text-purple-200 text-xs py-1.5 px-3 sm:px-4 border-b border-purple-900/30 overflow-hidden flex items-center gap-2 w-full">
         <div className="flex items-center gap-2 overflow-hidden flex-1">
           <div className="flex items-center gap-1 font-semibold text-purple-300 shrink-0">
             <Bell className="w-3.5 h-3.5 text-purple-400" />

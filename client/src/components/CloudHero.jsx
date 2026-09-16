@@ -246,7 +246,7 @@ export default function CloudHero({ onSelectProduct, onOpenQuickBuy, products = 
             </div>
 
             {/* Giant 3D Text: IBUKIHUB */}
-            <h1 className="text-7xl sm:text-9xl md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-black tracking-wider text-white drop-shadow-[0_20px_45px_rgba(0,0,0,0.85)] font-sans uppercase leading-none opacity-90 select-none">
+            <h1 className="text-5xl sm:text-7xl md:text-[10rem] lg:text-[14rem] xl:text-[16rem] font-black tracking-wider text-white drop-shadow-[0_20px_45px_rgba(0,0,0,0.85)] font-sans uppercase leading-none opacity-90 select-none">
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-purple-100 to-purple-300">
                 IBUKIHUB
               </span>
@@ -417,10 +417,10 @@ export default function CloudHero({ onSelectProduct, onOpenQuickBuy, products = 
         </div>
 
         {/* LAYER 4B: STANDALONE IBUKI FB AUTOPOSTER PRO (Right Side UI) */}
-        <div className="absolute inset-y-0 right-2 sm:right-4 lg:right-3 xl:right-8 z-30 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 inset-x-2 sm:inset-x-auto sm:right-4 lg:right-3 xl:right-8 z-30 flex items-center justify-center lg:justify-end pointer-events-none">
           <div 
             ref={chipLayerRightRef}
-            className="pointer-events-auto w-[300px] sm:w-[335px] xl:w-[365px]"
+            className="pointer-events-auto w-full max-w-[340px] sm:w-[335px] xl:w-[365px]"
             style={{ willChange: 'transform' }}
           >
             {/* Mobile Tab Switcher (Visible only on < lg screens) */}
