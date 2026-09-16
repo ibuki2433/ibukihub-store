@@ -69,7 +69,7 @@ router.post('/', (req, res) => {
         valid: true,
         plan: matchedOrder.planCode || 'VIP',
         expiresAt:
-          matchedOrder.expiresAt === 'LIFETIME'
+          (!matchedOrder.expiresAt || matchedOrder.expiresAt === 'LIFETIME' || isNaN(new Date(matchedOrder.expiresAt).getTime()))
             ? 'ไม่มีวันหมดอายุ (Lifetime)'
             : new Date(matchedOrder.expiresAt).toLocaleDateString('th-TH'),
         customerName: matchedOrder.username || 'ลูกค้า IbukiHub',
