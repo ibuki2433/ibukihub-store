@@ -24,7 +24,8 @@
     },
     "promptpay": {
       "enabled": true,
-      "number": "156-8-83147-7",
+      "number": "086-371-4416",
+      "bankAccount": "156-8-83147-7",
       "accountName": "ภูวนาท เมธาวงศ์วณิช",
       "bankName": "ธนาคารกสิกรไทย (KBANK)",
       "slipokApiKey": "",

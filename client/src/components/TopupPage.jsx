@@ -739,14 +739,18 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-1 text-xs">
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5 text-xs">
                       <div className="flex justify-between">
                         <span className="text-gray-500">ชื่อบัญชี:</span>
-                        <span className="font-bold text-gray-900">{promptpayInfo?.accountName || 'Ibuki Store (พร้อมเพย์)'}</span>
+                        <span className="font-bold text-gray-900">{promptpayInfo?.accountName || 'ภูวนาท เมธาวงศ์วณิช'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500">เลขบัญชี / พร้อมเพย์:</span>
-                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.number || '156-8-83147-7'}</span>
+                        <span className="text-gray-500">เบอร์พร้อมเพย์:</span>
+                        <span className="font-mono font-bold text-emerald-700 text-sm">{promptpayInfo?.number || '086-371-4416'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">เลขบัญชีกสิกรไทย:</span>
+                        <span className="font-mono font-bold text-purple-700 text-sm">{promptpayInfo?.bankAccount || '156-8-83147-7'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">ธนาคาร:</span>
@@ -754,14 +758,23 @@ export default function TopupPage({ onBackToShop, onOpenAuth }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(promptpayInfo?.number || '156-8-83147-7')}
-                        className="px-3.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
+                        onClick={() => copyToClipboard(promptpayInfo?.number || '086-371-4416')}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
                       >
                         {copiedPromptPay ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedPromptPay ? 'คัดลอกเลขบัญชีแล้ว' : 'คัดลอกเลขบัญชี'}</span>
+                        <span>คัดลอกเบอร์พร้อมเพย์</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(promptpayInfo?.bankAccount || '156-8-83147-7')}
+                        className="px-3 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>คัดลอกเลขบัญชีกสิกร</span>
                       </button>
                     </div>
 

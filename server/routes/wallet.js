@@ -267,6 +267,7 @@ router.get('/promptpay-info', (req, res) => {
       promptpay: {
         enabled: promptpay.enabled !== false,
         number: targetNumber,
+        bankAccount: promptpay.bankAccount || '156-8-83147-7',
         accountName: promptpay.accountName || 'ภูวนาท เมธาวงศ์วณิช',
         bankName: promptpay.bankName || 'ธนาคารกสิกรไทย (KBANK)',
         customQrUrl: promptpay.customQrUrl || null,

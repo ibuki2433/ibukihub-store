@@ -314,16 +314,25 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                     </div>
 
                     {/* Account Details */}
-                    <div className="w-full bg-neutral-50 rounded-xl p-2.5 border border-neutral-200 text-left text-xs space-y-1">
+                    <div className="w-full bg-neutral-50 rounded-xl p-2.5 border border-neutral-200 text-left text-xs space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 text-[11px]">เลขบัญชี / พร้อมเพย์:</span>
+                        <span className="text-neutral-500 text-[11px]">ชื่อบัญชี:</span>
+                        <span className="font-bold text-neutral-800">{promptpayInfo?.accountName || 'ภูวนาท เมธาวงศ์วณิช'}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-neutral-500 text-[11px]">เบอร์พร้อมเพย์:</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-bold text-neutral-900">{promptpayInfo?.number || '156-8-83147-7'}</span>
+                          <span className="font-mono font-bold text-emerald-700">{promptpayInfo?.number || '086-371-4416'}</span>
                           <button
                             type="button"
-                            onClick={handleCopyPromptPay}
+                            onClick={() => {
+                              navigator.clipboard.writeText('0863714416');
+                              setCopiedPromptPay(true);
+                              setTimeout(() => setCopiedPromptPay(false), 2000);
+                            }}
                             className="p-1 rounded bg-neutral-200 hover:bg-neutral-300 text-neutral-700 transition-colors"
-                            title="คัดลอกหมายเลข"
+                            title="คัดลอกเบอร์พร้อมเพย์"
                           >
                             {copiedPromptPay ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
@@ -331,8 +340,22 @@ export default function TopupModal({ onClose, onOpenAuth }) {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 text-[11px]">ชื่อบัญชี:</span>
-                        <span className="font-bold text-neutral-800">{promptpayInfo?.accountName || 'ภูวนาท เมธาวงศ์วณิช'}</span>
+                        <span className="text-neutral-500 text-[11px]">เลขบัญชีกสิกร:</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-purple-700">{promptpayInfo?.bankAccount || '156-8-83147-7'}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('1568831477');
+                              setCopiedPromptPay(true);
+                              setTimeout(() => setCopiedPromptPay(false), 2000);
+                            }}
+                            className="p-1 rounded bg-neutral-200 hover:bg-neutral-300 text-neutral-700 transition-colors"
+                            title="คัดลอกเลขบัญชีกสิกร"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between">
