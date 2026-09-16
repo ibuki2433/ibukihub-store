@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Search, ChevronDown, Download, Wallet, User, LogIn, UserPlus, LogOut, ShieldCheck, Sparkles, Globe, Gift, Menu, X } from 'lucide-react';
+import { Layers, Search, ChevronDown, Download, Wallet, User, LogIn, UserPlus, LogOut, ShieldCheck, Sparkles, Globe, Gift, Menu, X, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -10,6 +10,7 @@ export default function Navbar({
   onOpenTopup,
   onOpenRedeem,
   onOpenLibrary,
+  onOpenHistory,
   onOpenAdmin,
   categories = [],
   selectedCategory,
@@ -336,6 +337,14 @@ export default function Navbar({
                     </button>
 
                     <button
+                      onClick={() => { if (onOpenHistory) onOpenHistory('all'); setUserMenuOpen(false); }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-purple-800/20 text-purple-200 flex items-center gap-2"
+                    >
+                      <History className="w-4 h-4 text-indigo-400" />
+                      <span>{lang === 'th' ? 'ประวัติการทำรายการ' : 'Transaction History'}</span>
+                    </button>
+
+                    <button
                       onClick={() => { onOpenTopup(); setUserMenuOpen(false); }}
                       className="w-full text-left px-3.5 py-2 hover:bg-purple-800/20 text-purple-200 flex items-center gap-2"
                     >
@@ -589,10 +598,18 @@ export default function Navbar({
 
                 <button
                   onClick={() => { onOpenLibrary(); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-2 p-2 rounded-xl bg-purple-950/50 hover:bg-purple-900/50 border border-purple-500/25 text-purple-200 font-medium col-span-2"
+                  className="flex items-center gap-2 p-2 rounded-xl bg-purple-950/50 hover:bg-purple-900/50 border border-purple-500/25 text-purple-200 font-medium"
                 >
                   <Download className="w-3.5 h-3.5 text-purple-300" />
                   <span>{t('navLibrary')} (คลังของฉัน)</span>
+                </button>
+
+                <button
+                  onClick={() => { if (onOpenHistory) onOpenHistory('all'); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-2 p-2 rounded-xl bg-indigo-950/50 hover:bg-indigo-900/50 border border-indigo-500/25 text-indigo-200 font-medium"
+                >
+                  <History className="w-3.5 h-3.5 text-indigo-300" />
+                  <span>{lang === 'th' ? 'ประวัติทำรายการ' : 'History'}</span>
                 </button>
 
                 {user.role === 'admin' && (

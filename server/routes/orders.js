@@ -78,4 +78,38 @@ router.get('/my-orders', (req, res) => {
   }
 });
 
+// Get user combined transaction history (Orders + Topups)
+router.get('/my-history', (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'];
+    if (!userId) {
+      return res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
+    }
+
+    const orders = db.getOrdersByUser(userId).map(order => {
+      let isExpired = false;
+      if (order.licenseKey) {
+        const isLifetime = order.isLifetime === true || order.expiresAt === 'LIFETIME' || (order.durationDays && order.durationDays >= 9999);
+        if (!isLifetime && order.expiresAt) {
+          const exp = new Date(order.expiresAt).getTime();
+          if (!isNaN(exp) && exp < Date.now()) {
+            isExpired = true;
+          }
+        }
+      }
+      return { ...order, isExpired };
+    });
+
+    const topups = db.getTopupsByUser(userId);
+
+    res.json({
+      success: true,
+      orders,
+      topups
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

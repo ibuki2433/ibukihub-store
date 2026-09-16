@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, FolderDown, Clock, ShieldCheck, Sparkles, KeyRound, Monitor, Copy, Check } from 'lucide-react';
+import { X, Download, FolderDown, Clock, ShieldCheck, Sparkles, KeyRound, Monitor, Copy, Check, History, AlertCircle, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function MyLibraryModal({ onClose, onOpenShop }) {
+export default function MyLibraryModal({ onClose, onOpenShop, onOpenHistory }) {
   const { user } = useAuth();
   const { t, lang } = useLanguage();
   const [orders, setOrders] = useState([]);
@@ -40,6 +40,18 @@ export default function MyLibraryModal({ onClose, onOpenShop }) {
     setTimeout(() => setCopiedKeyId(null), 2000);
   };
 
+  const isOrderKeyExpired = (order) => {
+    if (!order.licenseKey) return false;
+    const isLifetime = order.isLifetime === true || order.expiresAt === 'LIFETIME' || (order.durationDays && order.durationDays >= 9999);
+    if (isLifetime) return false;
+    if (!order.expiresAt) return false;
+    const exp = new Date(order.expiresAt).getTime();
+    return !isNaN(exp) && exp < Date.now();
+  };
+
+  const activeOrders = orders.filter(o => !isOrderKeyExpired(o));
+  const expiredCount = orders.filter(o => isOrderKeyExpired(o)).length;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       
@@ -59,42 +71,98 @@ export default function MyLibraryModal({ onClose, onOpenShop }) {
         {/* Modal Header */}
         <div className="bg-[#18132e] border-b border-purple-900/40 p-6 sm:p-7 text-white relative">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500" />
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 shadow-inner">
-              <FolderDown className="w-6 h-6 text-purple-300" />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 shadow-inner">
+                <FolderDown className="w-6 h-6 text-purple-300" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black tracking-wide text-white">
+                  {lang === 'th' ? 'คลังซอฟต์แวร์ที่ใช้งานได้' : t('libraryTitle')}
+                </h3>
+                <p className="text-xs sm:text-sm text-purple-300/80 mt-1">
+                  {lang === 'th' ? 'เฉพาะโปรแกรมและ License Key ที่ยังไม่หมดอายุการใช้งาน' : t('librarySubtitle')}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-wide text-white">
-                {lang === 'th' ? 'คลังซอฟต์แวร์ของฉัน' : t('libraryTitle')}
-              </h3>
-              <p className="text-xs sm:text-sm text-purple-300/80 mt-1">
-                {t('librarySubtitle')}
-              </p>
-            </div>
+
+            {onOpenHistory && (
+              <button
+                onClick={() => { onClose(); onOpenHistory('orders'); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#231a44] hover:bg-[#2e225a] text-purple-200 hover:text-white text-xs sm:text-sm font-semibold border border-purple-500/40 shadow transition-all active:scale-95"
+              >
+                <History className="w-4 h-4 text-purple-400" />
+                <span>ดูประวัติคำสั่งซื้อทั้งหมด ({orders.length})</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Modal Body */}
         <div className="p-6 sm:p-8 max-h-[78vh] overflow-y-auto space-y-6">
           
+          {/* Expired Notice Banner if any */}
+          {expiredCount > 0 && (
+            <div className="p-3.5 rounded-2xl bg-purple-950/70 border border-purple-500/40 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-purple-200 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>
+                  มีคีย์ซอฟต์แวร์ที่หมดอายุแล้ว <b>{expiredCount}</b> รายการ (ระบบนำออกจากคลังอัตโนมัติแล้ว)
+                </span>
+              </div>
+              {onOpenHistory && (
+                <button
+                  onClick={() => { onClose(); onOpenHistory('orders'); }}
+                  className="px-3.5 py-1.5 rounded-xl bg-purple-800/80 hover:bg-purple-700 text-white font-bold text-xs transition-all border border-purple-400/40 shadow-sm"
+                >
+                  เปิดดูในประวัติการสั่งซื้อ →
+                </button>
+              )}
+            </div>
+          )}
+
           {loading ? (
             <div className="py-16 text-center text-purple-300/60 text-sm">
               {t('libraryLoading')}
             </div>
-          ) : orders.length === 0 ? (
-            <div className="py-20 text-center space-y-3">
+          ) : activeOrders.length === 0 ? (
+            <div className="py-16 text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-3xl bg-purple-950/50 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-inner">
                 <FolderDown className="w-8 h-8 opacity-60" />
               </div>
               <div className="text-base sm:text-lg font-bold text-purple-200">
-                {lang === 'th' ? 'คลังโปรแกรมของคุณยังว่างเปล่า' : t('libraryEmpty')}
+                {orders.length > 0
+                  ? 'ซอฟต์แวร์ที่คุณเคยซื้อหมดอายุการใช้งานแล้ว'
+                  : (lang === 'th' ? 'คลังโปรแกรมของคุณยังว่างเปล่า' : t('libraryEmpty'))}
               </div>
               <p className="text-xs sm:text-sm text-purple-400/70 max-w-sm mx-auto">
-                {lang === 'th' ? 'เลือกซื้อซอฟต์แวร์ที่คุณต้องการเพื่อรับสิทธิ์และดาวน์โหลดใช้งานได้ทันที 24 ชม.' : 'Purchase software to get instant access and download keys anytime 24/7.'}
+                {orders.length > 0
+                  ? 'คีย์ซอฟต์แวร์ทั้งหมดหมดอายุแล้ว คุณสามารถกดต่ออายุหรือซื้อใหม่ หรือเปิดดูประวัติรายการเดิมได้ที่ประวัติการสั่งซื้อ'
+                  : (lang === 'th' ? 'เลือกซื้อซอฟต์แวร์ที่คุณต้องการเพื่อรับสิทธิ์และดาวน์โหลดใช้งานได้ทันที 24 ชม.' : 'Purchase software to get instant access and download keys anytime 24/7.')}
               </p>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                {onOpenShop && (
+                  <button
+                    onClick={onOpenShop}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>เลือกซื้อซอฟต์แวร์</span>
+                  </button>
+                )}
+                {orders.length > 0 && onOpenHistory && (
+                  <button
+                    onClick={() => { onClose(); onOpenHistory('orders'); }}
+                    className="px-5 py-2.5 rounded-xl bg-[#231a44] hover:bg-[#2f225c] text-purple-200 text-xs sm:text-sm font-bold border border-purple-500/40 transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    <History className="w-4 h-4" />
+                    <span>ดูประวัติทั้งหมด</span>
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
-            orders.map((order) => (
+            activeOrders.map((order) => (
               <div
                 key={order.id}
                 className="p-5 sm:p-7 rounded-3xl bg-[#18132e] border-2 border-purple-500/30 hover:border-purple-400/50 transition-all space-y-4 shadow-xl relative overflow-hidden"

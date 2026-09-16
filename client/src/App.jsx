@@ -14,6 +14,7 @@ import RedeemCodeModal from './components/RedeemCodeModal';
 import TopupPage from './components/TopupPage';
 import AuthPage from './components/AuthPage';
 import MyLibraryModal from './components/MyLibraryModal';
+import HistoryModal from './components/HistoryModal';
 import AdminDashboard from './components/AdminDashboard';
 import AdminFloatingHUD from './components/AdminFloatingHUD';
 import Footer from './components/Footer';
@@ -47,6 +48,8 @@ function StoreMain() {
   const [buyProduct, setBuyProduct] = useState(null);
   const [isTopupOpen, setIsTopupOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyTab, setHistoryTab] = useState('all');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   useEffect(() => {
@@ -225,6 +228,7 @@ function StoreMain() {
         onOpenTopup={handleOpenTopup}
         onOpenRedeem={() => setIsRedeemOpen(true)}
         onOpenLibrary={() => setIsLibraryOpen(true)}
+        onOpenHistory={(tab = 'all') => { setHistoryTab(tab); setIsHistoryOpen(true); }}
         onOpenAdmin={handleOpenAdmin}
         categories={categories}
         selectedCategory={selectedCategory}
@@ -401,8 +405,30 @@ function StoreMain() {
             const el = document.getElementById('catalog');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
+          onOpenHistory={(tab = 'orders') => {
+            setIsLibraryOpen(false);
+            setHistoryTab(tab);
+            setIsHistoryOpen(true);
+          }}
         />
       )}
+
+      {/* Transaction & Order History Modal */}
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        initialTab={historyTab}
+        onClose={() => setIsHistoryOpen(false)}
+        onOpenShop={() => {
+          setIsHistoryOpen(false);
+          if (currentPage !== 'shop') setCurrentPage('shop');
+          const el = document.getElementById('catalog');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+        onOpenTopup={() => {
+          setIsHistoryOpen(false);
+          handleOpenTopup();
+        }}
+      />
 
       {isAdminOpen && (
         <AdminDashboard

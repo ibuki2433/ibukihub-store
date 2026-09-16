@@ -1220,6 +1220,11 @@ class Database {
     return this.data.orders.filter(o => o.userId === userId);
   }
 
+  getTopupsByUser(userId) {
+    if (!this.data.topups) return [];
+    return this.data.topups.filter(t => t.userId === userId);
+  }
+
   getAllOrders() {
     return this.data.orders;
   }
