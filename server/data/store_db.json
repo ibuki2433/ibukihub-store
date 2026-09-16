@@ -8,7 +8,7 @@
     "stats": {
       "itemsAvailable": 3,
       "totalSalesBath": 14544,
-      "totalMembers": 2,
+      "totalMembers": 3,
       "totalSold": 76
     },
     "emailGateway": {
@@ -52,7 +52,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 156,
+      "balance": 127,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -164,7 +164,7 @@
         }
       ],
       "systemRequirements": "Windows 10 / Windows 11 (64-bit), Google Chrome, RAM 4GB ขึ้นไป, พื้นที่ว่าง 300MB",
-      "fileName": "Ibuki_FB_AutoPoster_Pro_v1.0.exe",
+      "fileName": "Ibuki FB AutoPoster Pro.exe",
       "fileSize": "125 MB",
       "imageUrl": "/autoposter_ui.png",
       "previewUrl": "/autoposter_ui.png",
@@ -514,6 +514,29 @@
       "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip",
       "fileSize": "196 MB",
       "createdAt": "2026-09-16T10:14:35.789Z",
+      "status": "completed"
+    },
+    {
+      "id": "ORD-371769",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "productId": "prod_autoposter",
+      "productName": "Ibuki FB AutoPoster Pro V.1.0",
+      "planId": "1day",
+      "planName": "เช่า 1 วัน (ทดลองใช้งาน)",
+      "planCode": "1DAY",
+      "durationDays": 1,
+      "isLifetime": false,
+      "expiresAt": "2026-09-17T10:17:31.058Z",
+      "price": 29,
+      "licenseKey": "IBUKI-1DAY-55BEF8-D18BDB-E507EC",
+      "machineId": null,
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki_FB_AutoPoster_Pro_v1.0.exe",
+      "downloadUrl": null,
+      "fileSize": "125 MB",
+      "createdAt": "2026-09-16T10:17:31.080Z",
       "status": "completed"
     }
   ],
