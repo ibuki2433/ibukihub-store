@@ -123,13 +123,27 @@ router.all('/file/:fileName', (req, res) => {
   try {
     const { fileName } = req.params;
     if (fileName.toLowerCase().includes('autoposter') || fileName.toLowerCase().includes('ibuki fb')) {
-      const exeCandidates = [
-        'C:\\Users\\User\\Downloads\\Ibuki FB AutoPoster Pro.exe',
-        path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro.exe')
-      ];
-      for (const ep of exeCandidates) {
-        if (fs.existsSync(ep)) {
-          return res.download(ep, 'Ibuki FB AutoPoster Pro.exe');
+      if (fileName.toLowerCase().endsWith('.zip')) {
+        const zipCandidates = [
+          path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip'),
+          'C:\\Users\\User\\Downloads\\Ibuki FB AutoPoster Pro_v1.0_Portable.zip',
+          path.join(DOWNLOADS_DIR, 'Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip')
+        ];
+        for (const zp of zipCandidates) {
+          if (fs.existsSync(zp)) {
+            return res.download(zp, 'Ibuki FB AutoPoster Pro_v1.0_Portable.zip');
+          }
+        }
+        return res.redirect('https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip');
+      } else {
+        const exeCandidates = [
+          'C:\\Users\\User\\Downloads\\Ibuki FB AutoPoster Pro.exe',
+          path.join(DOWNLOADS_DIR, 'Ibuki FB AutoPoster Pro.exe')
+        ];
+        for (const ep of exeCandidates) {
+          if (fs.existsSync(ep)) {
+            return res.download(ep, 'Ibuki FB AutoPoster Pro.exe');
+          }
         }
       }
     }
