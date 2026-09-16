@@ -52,7 +52,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 40,
+      "balance": 721,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -71,6 +71,19 @@
       "facebookId": null,
       "avatar": null,
       "createdAt": "2026-09-16T09:04:44.024Z"
+    },
+    {
+      "id": "usr_l7m00s1lk",
+      "username": "Monlyna",
+      "displayName": "Mon",
+      "password": "monly25532518",
+      "role": "member",
+      "balance": 0,
+      "email": "monlyna412@gmail.com",
+      "phone": "",
+      "facebookId": null,
+      "avatar": null,
+      "createdAt": "2026-09-16T11:55:35.231Z"
     }
   ],
   "categories": [
@@ -608,6 +621,53 @@
       "fileSize": "125 MB",
       "createdAt": "2026-09-16T10:27:11.846Z",
       "status": "completed"
+    },
+    {
+      "id": "ORD-516405",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "productId": "prod_autoposter",
+      "productName": "Ibuki FB AutoPoster Pro V.1.0",
+      "planId": "1day",
+      "planName": "เช่า 1 วัน (ทดลองใช้งาน)",
+      "planCode": "1DAY",
+      "durationDays": 1,
+      "isLifetime": false,
+      "expiresAt": "2026-09-17T10:33:16.772Z",
+      "price": 29,
+      "licenseKey": "IBUKI-1DAY-89E91B-410EFD-31B126",
+      "machineId": null,
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki FB AutoPoster Pro_v1.0_Portable.zip",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip",
+      "fileSize": "125 MB",
+      "createdAt": "2026-09-16T10:33:16.779Z",
+      "status": "completed"
+    },
+    {
+      "id": "ORD-853478",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "productId": "prod_autoposter",
+      "productName": "Ibuki FB AutoPoster Pro V.1.0",
+      "planId": "lifetime",
+      "planName": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+      "planCode": "VIP",
+      "durationDays": 99999,
+      "isLifetime": true,
+      "expiresAt": "LIFETIME",
+      "price": 1290,
+      "licenseKey": "IBUKI-VIP-33B11E-00E9C3-0E65F1",
+      "machineId": "EA95831F10B75006",
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki FB AutoPoster Pro_v1.0_Portable.zip",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip",
+      "fileSize": "125 MB",
+      "createdAt": "2026-09-16T10:37:11.213Z",
+      "status": "completed",
+      "lastSeenAt": "2026-09-16T10:51:21.825Z"
     }
   ],
   "topups": [
@@ -690,6 +750,20 @@
       "senderName": "Kob",
       "message": "แนบสลิปถูกต้อง เติมเงินสำเร็จ",
       "createdAt": "2026-09-16T09:08:01.020Z"
+    },
+    {
+      "id": "TOP-26143",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "amount": 2000,
+      "channel": "แอดมินเพิ่มเงิน +฿2,000",
+      "status": "SUCCESS",
+      "slipUrl": null,
+      "transRef": null,
+      "provider": null,
+      "senderName": "",
+      "message": "",
+      "createdAt": "2026-09-16T10:37:01.277Z"
     }
   ],
   "promoCodes": [
