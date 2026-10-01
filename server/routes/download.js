@@ -65,6 +65,25 @@ router.all('/:orderId', (req, res) => {
       return res.redirect('https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip');
     }
 
+    // Always serve Ibuki_Roblox_Screens_v1.0.0.zip for roblox product
+    if (
+      order.productId === 'prod_roblox_screens' || 
+      (order.productName && order.productName.toLowerCase().includes('roblox')) ||
+      (order.fileName && order.fileName.toLowerCase().includes('roblox'))
+    ) {
+      const robloxCandidates = [
+        path.join(DOWNLOADS_DIR, 'Ibuki_Roblox_Screens_v1.0.0.zip'),
+        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip',
+        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip'
+      ];
+      for (const rPath of robloxCandidates) {
+        if (fs.existsSync(rPath)) {
+          return res.download(rPath, 'Ibuki_Roblox_Screens_v1.0.0.zip');
+        }
+      }
+      return res.redirect('https://github.com/ibuki2433/ibukihub-store/raw/main/server/storage/downloads/Ibuki_Roblox_Screens_v1.0.0.zip');
+    }
+
     // 1. Check local file candidates (user Downloads folder or server downloads directory)
     const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
     const userDesktopSource = 'C:\\Users\\User\\Desktop\\ไฟล์ล่าสุดตอนนี้\\แบบยังไม่แตกไฟล์';
@@ -151,6 +170,20 @@ router.all('/file/:fileName', (req, res) => {
         }
       }
     }
+    if (fileName.toLowerCase().includes('roblox')) {
+      const robloxCandidates = [
+        path.join(DOWNLOADS_DIR, 'Ibuki_Roblox_Screens_v1.0.0.zip'),
+        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip',
+        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip'
+      ];
+      for (const rp of robloxCandidates) {
+        if (fs.existsSync(rp)) {
+          return res.download(rp, 'Ibuki_Roblox_Screens_v1.0.0.zip');
+        }
+      }
+      return res.redirect('https://github.com/ibuki2433/ibukihub-store/raw/main/server/storage/downloads/Ibuki_Roblox_Screens_v1.0.0.zip');
+    }
+
     const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
     const userDesktopDir = 'C:\\Users\\User\\Desktop';
     const userDesktopSource = 'C:\\Users\\User\\Desktop\\ไฟล์ล่าสุดตอนนี้\\แบบยังไม่แตกไฟล์';
@@ -173,7 +206,9 @@ router.all('/file/:fileName', (req, res) => {
       'IbukiDownload_v2.5_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/IbukiDownload_v2.5_Portable.zip',
       'Ibuki FB AutoPoster Pro_v1.0_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip',
       'Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip',
-      'Ibuki FB AutoPoster Pro.exe': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip'
+      'Ibuki FB AutoPoster Pro.exe': 'https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_FB_AutoPoster_Pro_v1.0_Portable.zip',
+      'Ibuki_Roblox_Screens_v1.0.0.zip': 'https://github.com/ibuki2433/ibukihub-store/raw/main/server/storage/downloads/Ibuki_Roblox_Screens_v1.0.0.zip',
+      'Ibuki Roblox Screens.exe': 'https://github.com/ibuki2433/ibukihub-store/raw/main/server/storage/downloads/Ibuki_Roblox_Screens_v1.0.0.zip'
     };
 
     if (cdnMap[fileName]) {
