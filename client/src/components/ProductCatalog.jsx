@@ -151,7 +151,9 @@ export default function ProductCatalog({
             ? (lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด')
             : cat.id === 'automation'
               ? (lang === 'en' ? '🤖 Automation Bots' : '🤖 การตลาด & บอทอัตโนมัติ')
-              : cat.name;
+              : cat.id === 'gaming'
+                ? (lang === 'en' ? '🎮 Gaming & Roblox' : '🎮 เครื่องมือเกม & Roblox')
+                : cat.name;
 
           return (
             <button

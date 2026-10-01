@@ -35,6 +35,9 @@ export default function ProductCard({ product, onSelectProduct, onQuickBuy, inde
     if (product.category === 'download') {
       return lang === 'en' ? '📁 Media Downloader' : '📁 จัดการไฟล์และดาวน์โหลด';
     }
+    if (product.category === 'gaming') {
+      return lang === 'en' ? '🎮 Gaming & Roblox' : '🎮 เครื่องมือเกม & Roblox';
+    }
     return product.category ? `🏷️ ${product.category}` : null;
   };
 

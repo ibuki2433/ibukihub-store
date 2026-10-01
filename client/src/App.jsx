@@ -29,7 +29,8 @@ function StoreMain() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([
     { id: "download", name: "จัดการไฟล์และดาวน์โหลด" },
-    { id: "automation", name: "การตลาด & บอทอัตโนมัติ" }
+    { id: "automation", name: "การตลาด & บอทอัตโนมัติ" },
+    { id: "gaming", name: "เครื่องมือเกม & Roblox" }
   ]);
   const [settings, setSettings] = useState(null);
   const [stats, setStats] = useState(null);

@@ -62,6 +62,25 @@ const SLIDES = [
     accentColor: "from-purple-600 to-pink-500",
     cardType: "delivery",
     bgGradient: "from-[#191130] via-[#130f24] to-[#0d0918]"
+  },
+  {
+    id: 4,
+    tag: "NEW RELEASE 2026",
+    badge: "🔥 ตัวจบสายฟาร์ม",
+    title: "Ibuki Roblox Screens V.1.0",
+    highlight: "โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨",
+    subtitle: "รองรับสูงสุด 50 จออิสระ พร้อมระบบ Auto-Reconnect, Hover Live Preview, ล็อก 120 FPS และบีบลดสเปกเบื้องหลัง คอมไม่ร้อน เปิดทิ้งไว้ข้ามคืนสบายๆ",
+    buttonText: "ดูข้อมูลโปรแกรม",
+    targetProductId: "prod_roblox_screens",
+    price: "฿ 99",
+    chips: [
+      { label: "เปิดอิสระสูงสุด 50 จอ", icon: HardDrive },
+      { label: "Auto-Reconnect & Hover Preview", icon: Sparkles },
+      { label: "ล็อก 120 FPS + บีบลดสเปก", icon: Cpu }
+    ],
+    accentColor: "from-violet-500 to-indigo-600",
+    cardType: "roblox",
+    bgGradient: "from-[#1b1035] via-[#130d29] to-[#0c081a]"
   }
 ];
 
@@ -282,6 +301,35 @@ export default function BannerSlider({ onSelectProduct, onSelectCategory, onOpen
 
                   <div className="text-center text-[11px] text-purple-300/70">
                     ปลอดภัย 100% พร้อมใช้งานตลอดชีพ
+                  </div>
+                </div>
+              )}
+
+              {/* Roblox Screens Showcase Card */}
+              {slide.cardType === 'roblox' && (
+                <div key="card-roblox" className="relative w-72 h-72 rounded-3xl bg-[#1a1433]/90 border border-purple-400/40 p-4 flex flex-col items-center justify-between shadow-soft-purple-lg animate-in fade-in zoom-in duration-400 group overflow-hidden">
+                  <div className="w-full flex items-center justify-between text-[11px] font-semibold text-purple-300 z-10">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
+                      เปิดตัวใหม่ล่าสุด
+                    </span>
+                    <span className="bg-purple-900/80 px-2 py-0.5 rounded text-purple-200 font-mono">v1.0.0 Portable</span>
+                  </div>
+
+                  <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-purple-500/30 my-1 group-hover:scale-105 transition-transform duration-300 bg-black/40">
+                    <img
+                      src="/ibuki_roblox_screens.png"
+                      alt="Ibuki Roblox Screens"
+                      className="w-full h-full object-cover object-top"
+                    />
+                    <div className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-purple-950/90 border border-purple-400/40 text-[10px] font-bold text-purple-200 shadow">
+                      ~34 MB
+                    </div>
+                  </div>
+
+                  <div className="w-full text-center space-y-0.5 bg-black/50 p-2 rounded-xl border border-purple-500/20 z-10">
+                    <div className="text-xs font-bold text-white truncate">Ibuki_Roblox_Screens_v1.0.0.zip</div>
+                    <div className="text-[10px] text-purple-300/80 truncate">Multi-Instance แท้ 50 จอ • 120 FPS • Auto-Reconnect</div>
                   </div>
                 </div>
               )}

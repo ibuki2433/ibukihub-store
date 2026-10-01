@@ -68,8 +68,10 @@ router.all('/:orderId', (req, res) => {
     // 1. Check local file candidates (user Downloads folder or server downloads directory)
     const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
     const userDesktopSource = 'C:\\Users\\User\\Desktop\\ไฟล์ล่าสุดตอนนี้\\แบบยังไม่แตกไฟล์';
+    const userDesktopDir = 'C:\\Users\\User\\Desktop';
     const localCandidates = [
       path.join(DOWNLOADS_DIR, fileName),
+      path.join(userDesktopDir, fileName),
       path.join(userDesktopSource, fileName),
       path.join('C:\\Users\\User\\Downloads', fileName),
       path.join(userDownloadsDir, fileName)
@@ -150,9 +152,11 @@ router.all('/file/:fileName', (req, res) => {
       }
     }
     const userDownloadsDir = path.join(process.env.USERPROFILE || 'C:\\Users\\User', 'Downloads');
+    const userDesktopDir = 'C:\\Users\\User\\Desktop';
     const userDesktopSource = 'C:\\Users\\User\\Desktop\\ไฟล์ล่าสุดตอนนี้\\แบบยังไม่แตกไฟล์';
     const localCandidates = [
       path.join(DOWNLOADS_DIR, fileName),
+      path.join(userDesktopDir, fileName),
       path.join(userDesktopSource, fileName),
       path.join('C:\\Users\\User\\Downloads', fileName),
       path.join(userDownloadsDir, fileName)

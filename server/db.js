@@ -164,7 +164,46 @@ const INITIAL_DATA = {
       stock: "ไม่จำกัด",
       unlimitedStock: true,
       soldCount: 35
+    },
+    {
+      id: "prod_roblox_screens",
+      name: "Ibuki Roblox Screens V.1.0",
+      category: "gaming",
+      price: 99,
+      originalPrice: 199,
+      badge: "🔥 ตัวจบสายฟาร์ม",
+      version: "v1.0.0 Portable",
+      shortDesc: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! รองรับสูงสุด 50 จอ พร้อม Auto-Reconnect, Hover Live Preview และดัน 120 FPS ลื่นตาแตก",
+      description: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨\n\nเบื่อไหมกับปัญหาจอหลุดแล้วไม่รู้เรื่อง? เปิดหลายจอแล้วเครื่องหน่วงกระตุกจนค้าง?\n\nจบทุกปัญหาด้วยโปรแกรมคุมจอระดับพรีเมียม ดีไซน์สวย ใช้งานง่ายในคลิกเดียว! 💜\n\n🌟 จุดเด่นที่สายฟาร์มต้องมี\n🚀 เปิดหลายจออิสระ (Multi-Instance แท้): รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2 จอ, 3 จอ, 5 จอ คลิกเดียวขึ้นทันที\n\n🔄 ระบบ Auto-Reconnect อัจฉริยะ: ไม่ต้องนั่งเฝ้าหน้าจอ! จอไหนหลุด/หลุดการเชื่อมต่อ ระบบนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ\n\n🔍 Hover Live Preview: เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที ไม่ต้องคลิกสลับจอไปมาให้เวียนหัว\n\n⚡ Ultra Resource Saver & 120 FPS:\n• ปรับดันเฟรมเรตลื่นตาแตกถึง 120 FPS\n• มีระบบบีบลดการกินสเปกจอเบื้องหลัง (Background Throttle) เปิดทิ้งไว้ข้ามวันข้ามคืนคอมไม่ร้อน\n\n🪟 Smart Auto-Grid Layout: จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอ และโหมดซ้อนมุมมินิมอล ไม่เกะกะสายตา\n\n🔇 1-Click Mute All & RAM Cleaner: ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมระบบเคลียร์แรมป้องกันเกมเด้ง",
+      features: [
+        "เปิดหลายจออิสระ (Multi-Instance แท้) รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2, 3, 5 จอ",
+        "ระบบ Auto-Reconnect อัจฉริยะ จอไหนหลุดนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ",
+        "Hover Live Preview เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที",
+        "Ultra Resource Saver & 120 FPS ปรับดันเฟรมลื่น พร้อมบีบลดการกินสเปกจอเบื้องหลัง คอมไม่ร้อน",
+        "Smart Auto-Grid Layout จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอและโหมดซ้อนมุมมินิมอล",
+        "1-Click Mute All & RAM Cleaner ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมเคลียร์แรมป้องกันเกมเด้ง",
+        "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์"
+      ],
+      systemRequirements: "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
+      fileName: "Ibuki_Roblox_Screens_v1.0.0.zip",
+      fileSize: "34 MB",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_Roblox_Screens_v1.0.0.zip",
+      requiresKey: false,
+      noKeyRequired: true,
+      imageUrl: "/ibuki_roblox_screens.png",
+      previewUrl: "/ibuki_roblox_screens.png",
+      rating: 5.0,
+      reviewsCount: 142,
+      stock: "ไม่จำกัด",
+      unlimitedStock: true,
+      soldCount: 28
     }
+  ],
+  categories: [
+    { id: "all", name: "ซอฟต์แวร์ทั้งหมด", icon: "Boxes" },
+    { id: "download", name: "จัดการไฟล์และดาวน์โหลด", icon: "Download" },
+    { id: "automation", name: "การตลาด & บอทอัตโนมัติ", icon: "Bot" },
+    { id: "gaming", name: "เครื่องมือเกม & Roblox", icon: "Gamepad2" }
   ],
   licenseKeys: {},
   orders: [],
@@ -206,6 +245,7 @@ class Database {
       this.ensureAdminUser();
       this.ensureAutoPosterProduct();
       this.ensureDownloadProducts();
+      this.ensureRobloxScreensProduct();
       this.ensureEmailGateway();
       this.ensurePromoCodes();
       this.save(false);
@@ -449,6 +489,77 @@ class Database {
           order.licenseKey = null;
         }
       }
+    }
+  }
+
+  ensureRobloxScreensProduct() {
+    if (!this.data.products) this.data.products = [];
+    if (!this.data.categories) {
+      this.data.categories = [
+        { id: "all", name: "ซอฟต์แวร์ทั้งหมด", icon: "Boxes" },
+        { id: "download", name: "จัดการไฟล์และดาวน์โหลด", icon: "Download" },
+        { id: "automation", name: "การตลาด & บอทอัตโนมัติ", icon: "Bot" }
+      ];
+    }
+    if (!this.data.categories.find(c => c.id === 'gaming')) {
+      this.data.categories.push({ id: "gaming", name: "เครื่องมือเกม & Roblox", icon: "Gamepad2" });
+    }
+
+    const robloxProduct = {
+      id: "prod_roblox_screens",
+      name: "Ibuki Roblox Screens V.1.0",
+      category: "gaming",
+      price: 99,
+      originalPrice: 199,
+      badge: "🔥 ตัวจบสายฟาร์ม",
+      version: "v1.0.0 Portable",
+      shortDesc: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! รองรับสูงสุด 50 จอ พร้อม Auto-Reconnect, Hover Live Preview และดัน 120 FPS ลื่นตาแตก",
+      description: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨\n\nเบื่อไหมกับปัญหาจอหลุดแล้วไม่รู้เรื่อง? เปิดหลายจอแล้วเครื่องหน่วงกระตุกจนค้าง?\n\nจบทุกปัญหาด้วยโปรแกรมคุมจอระดับพรีเมียม ดีไซน์สวย ใช้งานง่ายในคลิกเดียว! 💜\n\n🌟 จุดเด่นที่สายฟาร์มต้องมี\n🚀 เปิดหลายจออิสระ (Multi-Instance แท้): รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2 จอ, 3 จอ, 5 จอ คลิกเดียวขึ้นทันที\n\n🔄 ระบบ Auto-Reconnect อัจฉริยะ: ไม่ต้องนั่งเฝ้าหน้าจอ! จอไหนหลุด/หลุดการเชื่อมต่อ ระบบนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ\n\n🔍 Hover Live Preview: เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที ไม่ต้องคลิกสลับจอไปมาให้เวียนหัว\n\n⚡ Ultra Resource Saver & 120 FPS:\n• ปรับดันเฟรมเรตลื่นตาแตกถึง 120 FPS\n• มีระบบบีบลดการกินสเปกจอเบื้องหลัง (Background Throttle) เปิดทิ้งไว้ข้ามวันข้ามคืนคอมไม่ร้อน\n\n🪟 Smart Auto-Grid Layout: จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอ และโหมดซ้อนมุมมินิมอล ไม่เกะกะสายตา\n\n🔇 1-Click Mute All & RAM Cleaner: ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมระบบเคลียร์แรมป้องกันเกมเด้ง",
+      features: [
+        "เปิดหลายจออิสระ (Multi-Instance แท้) รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2, 3, 5 จอ",
+        "ระบบ Auto-Reconnect อัจฉริยะ จอไหนหลุดนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ",
+        "Hover Live Preview เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที",
+        "Ultra Resource Saver & 120 FPS ปรับดันเฟรมลื่น พร้อมบีบลดการกินสเปกจอเบื้องหลัง คอมไม่ร้อน",
+        "Smart Auto-Grid Layout จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอและโหมดซ้อนมุมมินิมอล",
+        "1-Click Mute All & RAM Cleaner ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมเคลียร์แรมป้องกันเกมเด้ง",
+        "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์"
+      ],
+      systemRequirements: "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
+      fileName: "Ibuki_Roblox_Screens_v1.0.0.zip",
+      fileSize: "34 MB",
+      downloadUrl: "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_Roblox_Screens_v1.0.0.zip",
+      requiresKey: false,
+      noKeyRequired: true,
+      imageUrl: "/ibuki_roblox_screens.png",
+      previewUrl: "/ibuki_roblox_screens.png",
+      rating: 5.0,
+      reviewsCount: 142,
+      stock: "ไม่จำกัด",
+      unlimitedStock: true,
+      soldCount: 28
+    };
+
+    const existing = this.data.products.find(p => p.id === 'prod_roblox_screens');
+    if (!existing) {
+      this.data.products.push(robloxProduct);
+    } else {
+      Object.assign(existing, robloxProduct);
+    }
+
+    if (this.data.licenseKeys) {
+      delete this.data.licenseKeys['prod_roblox_screens'];
+    }
+
+    if (this.data.orders) {
+      for (const order of this.data.orders) {
+        if (order.productId === 'prod_roblox_screens') {
+          order.licenseKey = null;
+        }
+      }
+    }
+
+    if (this.data.settings?.stats) {
+      this.data.settings.stats.itemsAvailable = this.data.products.length;
     }
   }
 
@@ -1107,7 +1218,7 @@ class Database {
         planName: planName,
         notes: `สั่งซื้อผ่านเว็บ IbukiHub (คำสั่งซื้อ #${orderId}, สมาชิก: ${user.username}, แพ็กเกจ: ${planName})`
       });
-    } else if (product.requiresKey === false || product.noKeyRequired || product.id === 'prod_ibuki_22' || product.id === 'prod_ibuki_25') {
+    } else if (product.requiresKey === false || product.noKeyRequired || product.id === 'prod_ibuki_22' || product.id === 'prod_ibuki_25' || product.id === 'prod_roblox_screens') {
       licenseKey = null;
     } else {
       licenseKey = this.consumeLicenseKey(productId);
