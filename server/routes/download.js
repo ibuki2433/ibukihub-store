@@ -72,9 +72,9 @@ router.all('/:orderId', (req, res) => {
       (order.fileName && order.fileName.toLowerCase().includes('roblox'))
     ) {
       const robloxCandidates = [
+        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip',
         path.join(DOWNLOADS_DIR, 'Ibuki_Roblox_Screens_v1.0.0.zip'),
-        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip',
-        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip'
+        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip'
       ];
       for (const rPath of robloxCandidates) {
         if (fs.existsSync(rPath)) {
@@ -172,9 +172,9 @@ router.all('/file/:fileName', (req, res) => {
     }
     if (fileName.toLowerCase().includes('roblox')) {
       const robloxCandidates = [
+        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip',
         path.join(DOWNLOADS_DIR, 'Ibuki_Roblox_Screens_v1.0.0.zip'),
-        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip',
-        'C:\\Users\\User\\Downloads\\Ibuki_Roblox_Screens_v1.0.0.zip'
+        'C:\\Users\\User\\Desktop\\Ibuki_Roblox_Screens_v1.0.0.zip'
       ];
       for (const rp of robloxCandidates) {
         if (fs.existsSync(rp)) {

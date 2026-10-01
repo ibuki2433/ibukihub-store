@@ -550,9 +550,9 @@ function OrderHistoryCard({ order, lang, handleCopyKey, copiedKeyId, onOpenShop,
               </button>
             )
           ) : (
-            order.downloadUrl && (
+            (order.downloadUrl || order.id) && (
               <a
-                href={order.downloadUrl}
+                href={order.id ? `/api/download/${order.id}?userId=${order.userId || ''}` : order.downloadUrl}
                 target="_blank"
                 rel="noreferrer"
                 download
