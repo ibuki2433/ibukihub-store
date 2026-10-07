@@ -67,7 +67,7 @@ const SLIDES = [
     id: 4,
     tag: "NEW RELEASE 2026",
     badge: "🔥 ตัวจบสายฟาร์ม",
-    title: "Ibuki Roblox Screens V.1.0",
+    title: "Ibuki Roblox Screens V.2.0.0",
     highlight: "โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨",
     subtitle: "รองรับสูงสุด 50 จออิสระ พร้อมระบบ Auto-Reconnect, Hover Live Preview, ล็อก 120 FPS และบีบลดสเปกเบื้องหลัง คอมไม่ร้อน เปิดทิ้งไว้ข้ามคืนสบายๆ",
     buttonText: "ดูข้อมูลโปรแกรม",
@@ -328,7 +328,7 @@ export default function BannerSlider({ onSelectProduct, onSelectCategory, onOpen
                   </div>
 
                   <div className="w-full text-center space-y-0.5 bg-black/50 p-2 rounded-xl border border-purple-500/20 z-10">
-                    <div className="text-xs font-bold text-white truncate">Ibuki_Roblox_Screens_v1.0.0.zip</div>
+                    <div className="text-xs font-bold text-white truncate">Ibuki Roblox Screens V.2.0.0.zip</div>
                     <div className="text-[10px] text-purple-300/80 truncate">Multi-Instance แท้ 50 จอ • 120 FPS • Auto-Reconnect</div>
                   </div>
                 </div>
