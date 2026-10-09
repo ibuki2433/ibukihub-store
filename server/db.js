@@ -168,12 +168,12 @@ const INITIAL_DATA = {
     },
     {
       id: "prod_roblox_screens",
-      name: "Ibuki Roblox Screens V.2.0.0",
+      name: "Ibuki Roblox Screens V.2.0.2",
       category: "gaming",
       price: 99,
       originalPrice: 199,
       badge: "🔥 ตัวจบสายฟาร์ม",
-      version: "v2.0.0 Portable",
+      version: "v2.0.2 Portable",
       shortDesc: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! รองรับสูงสุด 50 จอ พร้อม Auto-Reconnect, Hover Live Preview และดัน 120 FPS ลื่นตาแตก",
       description: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨\n\nเบื่อไหมกับปัญหาจอหลุดแล้วไม่รู้เรื่อง? เปิดหลายจอแล้วเครื่องหน่วงกระตุกจนค้าง?\n\nจบทุกปัญหาด้วยโปรแกรมคุมจอระดับพรีเมียม ดีไซน์สวย ใช้งานง่ายในคลิกเดียว! 💜\n\n🌟 จุดเด่นที่สายฟาร์มต้องมี\n🚀 เปิดหลายจออิสระ (Multi-Instance แท้): รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2 จอ, 3 จอ, 5 จอ คลิกเดียวขึ้นทันที\n\n🔄 ระบบ Auto-Reconnect อัจฉริยะ: ไม่ต้องนั่งเฝ้าหน้าจอ! จอไหนหลุด/หลุดการเชื่อมต่อ ระบบนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ\n\n🔍 Hover Live Preview: เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที ไม่ต้องคลิกสลับจอไปมาให้เวียนหัว\n\n⚡ Ultra Resource Saver & 120 FPS:\n• ปรับดันเฟรมเรตลื่นตาแตกถึง 120 FPS\n• มีระบบบีบลดการกินสเปกจอเบื้องหลัง (Background Throttle) เปิดทิ้งไว้ข้ามวันข้ามคืนคอมไม่ร้อน\n\n🪟 Smart Auto-Grid Layout: จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอ และโหมดซ้อนมุมมินิมอล ไม่เกะกะสายตา\n\n🔇 1-Click Mute All & RAM Cleaner: ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมระบบเคลียร์แรมป้องกันเกมเด้ง",
       features: [
@@ -186,9 +186,9 @@ const INITIAL_DATA = {
         "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์"
       ],
       systemRequirements: "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
-      fileName: "Ibuki Roblox Screens V.2.0.0.zip",
+      fileName: "Ibuki Roblox Screens V.2.0.2-Customer.zip",
       fileSize: "24.6 MB",
-      downloadUrl: "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.0.0.zip",
+      downloadUrl: "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.0.2-Customer.zip",
       requiresKey: false,
       noKeyRequired: true,
       imageUrl: "/ibuki_roblox_screens.png",
@@ -508,12 +508,12 @@ class Database {
 
     const robloxProduct = {
       id: "prod_roblox_screens",
-      name: "Ibuki Roblox Screens V.2.0.0",
+      name: "Ibuki Roblox Screens V.2.0.2",
       category: "gaming",
       price: 99,
       originalPrice: 199,
       badge: "🔥 ตัวจบสายฟาร์ม",
-      version: "v2.0.0 Portable",
+      version: "v2.0.2 Portable",
       shortDesc: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! รองรับสูงสุด 50 จอ พร้อม Auto-Reconnect, Hover Live Preview และดัน 120 FPS ลื่นตาแตก",
       description: "🔥 [เปิดตัว] Ibuki Roblox Screens — โปรแกรมเปิด Roblox หลายจอตัวจบของสายฟาร์ม! 🎮✨\n\nเบื่อไหมกับปัญหาจอหลุดแล้วไม่รู้เรื่อง? เปิดหลายจอแล้วเครื่องหน่วงกระตุกจนค้าง?\n\nจบทุกปัญหาด้วยโปรแกรมคุมจอระดับพรีเมียม ดีไซน์สวย ใช้งานง่ายในคลิกเดียว! 💜\n\n🌟 จุดเด่นที่สายฟาร์มต้องมี\n🚀 เปิดหลายจออิสระ (Multi-Instance แท้): รองรับสูงสุด 50 จอ พร้อมปุ่มกดเปิดไว 2 จอ, 3 จอ, 5 จอ คลิกเดียวขึ้นทันที\n\n🔄 ระบบ Auto-Reconnect อัจฉริยะ: ไม่ต้องนั่งเฝ้าหน้าจอ! จอไหนหลุด/หลุดการเชื่อมต่อ ระบบนับถอยหลังต่อเข้าห้องเดิมให้อัตโนมัติ\n\n🔍 Hover Live Preview: เลื่อนเมาส์ชี้ปุ่มจอ ดูภาพถ่ายทอดสดในเกมได้ทันที ไม่ต้องคลิกสลับจอไปมาให้เวียนหัว\n\n⚡ Ultra Resource Saver & 120 FPS:\n• ปรับดันเฟรมเรตลื่นตาแตกถึง 120 FPS\n• มีระบบบีบลดการกินสเปกจอเบื้องหลัง (Background Throttle) เปิดทิ้งไว้ข้ามวันข้ามคืนคอมไม่ร้อน\n\n🪟 Smart Auto-Grid Layout: จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอ และโหมดซ้อนมุมมินิมอล ไม่เกะกะสายตา\n\n🔇 1-Click Mute All & RAM Cleaner: ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมระบบเคลียร์แรมป้องกันเกมเด้ง",
       features: [
@@ -526,9 +526,9 @@ class Database {
         "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์"
       ],
       systemRequirements: "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
-      fileName: "Ibuki Roblox Screens V.2.0.0.zip",
+      fileName: "Ibuki Roblox Screens V.2.0.2-Customer.zip",
       fileSize: "24.6 MB",
-      downloadUrl: "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.0.0.zip",
+      downloadUrl: "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.0.2-Customer.zip",
       requiresKey: false,
       noKeyRequired: true,
       imageUrl: "/ibuki_roblox_screens.png",
