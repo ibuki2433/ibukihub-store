@@ -52,7 +52,7 @@
       "displayName": "Dream",
       "password": "za0809363531",
       "role": "member",
-      "balance": 741,
+      "balance": 642,
       "email": "gqkpm1234@gmail.com",
       "phone": "",
       "facebookId": null,
@@ -719,6 +719,29 @@
       "createdAt": "2026-09-16T10:37:11.213Z",
       "status": "completed",
       "lastSeenAt": "2026-09-16T10:51:21.825Z"
+    },
+    {
+      "id": "ORD-270669",
+      "userId": "usr_jvdf3ufay",
+      "username": "gqkpm",
+      "productId": "prod_roblox_screens",
+      "productName": "Ibuki Roblox Screens V.1.0",
+      "planId": null,
+      "planName": "ซื้อสิทธิ์ถาวร (ตลอดชีพ)",
+      "planCode": "VIP",
+      "durationDays": 99999,
+      "isLifetime": true,
+      "expiresAt": "LIFETIME",
+      "price": 99,
+      "licenseKey": null,
+      "machineId": null,
+      "licenseStatus": "active",
+      "source": "web_store",
+      "fileName": "Ibuki_Roblox_Screens_v1.0.0.zip",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/raw/main/server/storage/downloads/Ibuki_Roblox_Screens_v1.0.0.zip",
+      "fileSize": "34 MB",
+      "createdAt": "2026-10-01T06:33:27.160Z",
+      "status": "completed"
     }
   ],
   "topups": [
