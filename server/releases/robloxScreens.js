@@ -2,7 +2,7 @@
 export const ROBLOX_RELEASE = Object.freeze({
   productName: 'Ibuki Roblox Screens V.2.1.0',
   fileName: 'Ibuki Roblox Screens V.2.1.0-Customer.zip',
-  fileSize: '24.3 MB',
+  fileSize: '35.9 MB',
   downloadUrl: 'https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.0-Customer.zip'
 });
 

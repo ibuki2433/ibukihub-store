@@ -293,11 +293,12 @@
         "Ultra Resource Saver & 120 FPS ปรับดันเฟรมลื่น พร้อมบีบลดการกินสเปกจอเบื้องหลัง คอมไม่ร้อน",
         "Smart Auto-Grid Layout จัดเรียงหน้าต่างอัตโนมัติ ทั้งโหมดตารางเต็มจอและโหมดซ้อนมุมมินิมอล",
         "1-Click Mute All & RAM Cleaner ปุ่มตัดเสียงทุกจอในคลิกเดียว พร้อมเคลียร์แรมป้องกันเกมเด้ง",
+        "⚡ TinyTask Built-in: ระบบมาโครบันทึกและเล่นซ้ำอัตโนมัติ (อัดเมาส์ คีย์บอร์ด วนลูปตลอดชีพ Continuous Loop)",
         "ไม่ต้องติดตั้ง (Portable Edition) ซื้อแล้วจบเลย แตกไฟล์ใช้งานได้ทันทีตลอดชีพ ไม่ต้องใส่คีย์"
       ],
       "systemRequirements": "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
       "fileName": "Ibuki Roblox Screens V.2.1.0-Customer.zip",
-      "fileSize": "24.3 MB",
+      "fileSize": "35.9 MB",
       "downloadUrl": "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.0-Customer.zip",
       "requiresKey": false,
       "noKeyRequired": true,
@@ -739,7 +740,7 @@
       "source": "web_store",
       "fileName": "Ibuki Roblox Screens V.2.1.0-Customer.zip",
       "downloadUrl": "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.0-Customer.zip",
-      "fileSize": "24.3 MB",
+      "fileSize": "35.9 MB",
       "createdAt": "2026-10-01T06:33:27.160Z",
       "status": "completed"
     }
