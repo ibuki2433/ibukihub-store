@@ -8,6 +8,9 @@ client/dist/
 # Large downloadable software packages (>100MB exceeds GitHub limit)
 server/storage/downloads/*.zip
 !server/storage/downloads/Ibuki Roblox Screens V.2.1.0-Customer.zip
+!server/storage/downloads/Ibuki Roblox Screens V.2.1.1-Customer.zip
+!server/storage/downloads/Ibuki Roblox Screens V.2.1.2-Customer.zip
+!server/storage/downloads/Ibuki_Roblox_Screens_V2.1.2_Customer.zip
 server/storage/downloads/*.rar
 server/storage/downloads/*.7z
 server/storage/downloads/*.exe
