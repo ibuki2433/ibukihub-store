@@ -72,6 +72,8 @@ router.all('/:orderId', (req, res) => {
       (order.fileName && order.fileName.toLowerCase().includes('roblox'))
     ) {
       const robloxCandidates = [
+        path.join(DOWNLOADS_DIR, 'Ibuki Roblox Screens V.2.1.2-Customer.zip'),
+        'C:\\Users\\User\\Downloads\\Ibuki Roblox Screens V.2.1.2-Customer.zip',
         path.join(DOWNLOADS_DIR, 'Ibuki Roblox Screens V.2.1.1-Customer.zip'),
         'C:\\Users\\User\\Downloads\\Ibuki Roblox Screens V.2.1.1-Customer.zip',
         path.join(DOWNLOADS_DIR, 'Ibuki Roblox Screens V.2.1.0-Customer.zip'),
@@ -85,7 +87,7 @@ router.all('/:orderId', (req, res) => {
           return res.download(rPath, path.basename(rPath));
         }
       }
-      return res.redirect('https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.1-Customer.zip');
+      return res.redirect('https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.2-Customer.zip');
     }
 
     // 1. Check local file candidates (user Downloads folder or server downloads directory)
