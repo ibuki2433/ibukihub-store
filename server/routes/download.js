@@ -87,7 +87,7 @@ router.all('/:orderId', (req, res) => {
           return res.download(rPath, path.basename(rPath));
         }
       }
-      return res.redirect('https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.2-Customer.zip');
+      return res.redirect('https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_Roblox_Screens_V2.1.2_Customer.zip');
     }
 
     // 1. Check local file candidates (user Downloads folder or server downloads directory)

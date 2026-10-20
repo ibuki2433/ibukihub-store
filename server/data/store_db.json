@@ -299,7 +299,7 @@
       "systemRequirements": "Windows 10 / Windows 11 (64-bit), รองรับ Roblox Desktop App ทุกเวอร์ชัน, RAM 4GB ขึ้นไป",
       "fileName": "Ibuki Roblox Screens V.2.1.2-Customer.zip",
       "fileSize": "35.9 MB",
-      "downloadUrl": "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.2-Customer.zip",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_Roblox_Screens_V2.1.2_Customer.zip",
       "requiresKey": false,
       "noKeyRequired": true,
       "imageUrl": "/ibuki_roblox_screens.png",
@@ -739,7 +739,7 @@
       "licenseStatus": "active",
       "source": "web_store",
       "fileName": "Ibuki Roblox Screens V.2.1.2-Customer.zip",
-      "downloadUrl": "https://raw.githubusercontent.com/ibuki2433/ibukihub-store/main/server/storage/downloads/Ibuki%20Roblox%20Screens%20V.2.1.2-Customer.zip",
+      "downloadUrl": "https://github.com/ibuki2433/ibukihub-store/releases/download/v2.5.0/Ibuki_Roblox_Screens_V2.1.2_Customer.zip",
       "fileSize": "35.9 MB",
       "createdAt": "2026-10-01T06:33:27.160Z",
       "status": "completed"
